@@ -1,0 +1,63 @@
+﻿@using System.Diagnostics.CodeAnalysis
+
+<div class="custom-node">
+    <div class="card @Node.CssClass">
+        @if(!Node.IsExpanded){
+            <div class="card-body">
+                <h5 class="card-title">@Node.Text</h5>
+                @if(Node.IsContainer){
+                <a href="" class="card-link" @onclick="@open" @onclick:preventDefault>Open</a>
+                }else{
+                <a href="" class="card-link" @onclick="@expand" @onclick:preventDefault>Edit</a>
+                }
+                <a href="" class="card-link" @onclick="@delete" @onclick:preventDefault>Delete</a>
+            </div>
+        }else{
+            <div class="card-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="displayName" class="form-label">Display name</label>
+                        <input type="text" class="form-control" id="displayName"
+                                    @bind-value="Node.Text"
+                                    placeholder="Input activity display name"
+                                    @onmousedown:stopPropagation
+                                    @onmouseup:stopPropagation
+                                    @onmousemove:stopPropagation />
+                    </div>
+                    @Edit
+                </form>
+                <a href="" class="card-link" @onclick="@collapce" @onclick:preventDefault>Close</a>
+            </div>
+        }
+
+    @foreach (var port in Node.Ports)
+    {
+        <PortRenderer Port="port"></PortRenderer>
+    }
+    </div>
+
+</div>
+
+@code {
+    [CascadingParameter]
+    public Service Service { get; set; } = default!;
+
+    [Parameter]
+    public Activity.DefaultNode Node { get; set; } = default!;
+
+    [Parameter, AllowNull]
+    public RenderFragment? Edit { get; set; }
+
+    void open() {
+        Service.Open(Node);
+    }
+    void expand() {
+        Node.IsExpanded = true;
+    }
+    void collapce() {
+        Node.IsExpanded = false;
+    }
+    void delete() {
+        Service.Delete(Node);
+    }
+}

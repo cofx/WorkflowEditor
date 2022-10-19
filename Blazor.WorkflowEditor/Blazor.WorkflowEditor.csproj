@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="6.0.7" />
+    <PackageReference Include="UiPath.Workflow" Version="6.0.0" />
+    <PackageReference Include="UiPath.Workflow.Runtime" Version="6.0.0" />
+    <PackageReference Include="Z.Blazor.Diagrams" Version="2.1.6" />
+    <PackageReference Include="Z.Blazor.Diagrams.Core" Version="2.1.6" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,30 @@
+﻿@using Blazor.WorkflowEditor.Components;
+
+<ActivityControl Node="@Node">
+    <Edit>
+        <div class="mb-3">
+            <label for="destination" class="form-label">Destination</label>
+            <input type="text" class="form-control" id="destination"
+                   @bind-value="Node.Destination"
+                   placeholder="Input destination"
+                   @onmousedown:stopPropagation
+                   @onmouseup:stopPropagation
+                   @onmousemove:stopPropagation />
+        </div>
+        <div class="mb-3">
+            <label for="source" class="form-label">Source</label>
+            <input type="text" class="form-control" id="source"
+                   @bind-value="Node.Source"
+                   placeholder="Input source"
+                   @onmousedown:stopPropagation
+                   @onmouseup:stopPropagation
+                   @onmousemove:stopPropagation />
+        </div>
+    </Edit>
+</ActivityControl>
+
+@code {
+    [Parameter]
+    public AssignNode Node { get; set; } = default!;
+}
+

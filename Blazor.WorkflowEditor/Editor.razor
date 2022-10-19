@@ -1,0 +1,132 @@
+﻿@implements IDisposable
+
+<div class="editor">
+
+    <div class="toolbox">
+        <div class="caption">
+            <div>Activities</div>
+            <button>##</button>
+        </div>
+
+        <ul class="groups list-unstyled">
+            @foreach (var group in this.ToolBoxGroups) {
+            <li class="groupItem">
+                <div class="groupName"> @group.Name </div>
+                <ul class="items list-unstyled">
+                        @foreach (var item in group.Items) {
+                            <li @key="item" class="activityItem" draggable="true" @ondragstart="() => OnDragStart(item)">
+                                @if (item.Image != null) {
+                                    <span class="@item.Image" aria-hidden="true"></span>
+                                }
+                                @item.Name
+                        </li>
+                    }
+                </ul>
+            </li>
+            }
+        </ul>
+    </div>
+
+    <div class="diagram" ondragover="event.preventDefault();" @ondragover:preventDefault @ondrop="OnDrop">
+        <div class="path">
+            @foreach (var pathItem in service.Path) {
+                <div>@pathItem.Name</div>
+            }
+        </div>
+
+        <CascadingValue Value="designer">
+               <CascadingValue Value="service">
+            <DiagramCanvas></DiagramCanvas>
+            </CascadingValue>
+        </CascadingValue>
+
+    </div>
+
+    <div class="variables">
+        <div class="caption">
+            <div>Variables</div>
+            <button>##</button>
+        </div>
+
+        <ul class="groups list-unstyled">
+            @foreach (var variable in service.Variables) {
+                <li class="groupItem">
+                    <div class="groupName"> @variable.Name </div>
+                </li>
+            }
+        </ul>
+    </div>
+
+</div>
+
+@code {
+    private Diagram designer { get; set; } = default!;
+    private ToolBoxItem? draggedToolboxItem;
+    private Blazor.WorkflowEditor.Service service { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public IEnumerable<ToolBoxGroup> ToolBoxGroups { get; set; } = default!;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        var options = new DiagramOptions
+        {
+            DeleteKey = "Delete", // What key deletes the selected nodes/links
+            DefaultNodeComponent = null, // Default component for nodes
+            AllowMultiSelection = true, // Whether to allow multi selection using CTRL
+            Links = new DiagramLinkOptions
+            { 
+            },
+            Zoom = new DiagramZoomOptions
+            {
+            Minimum = 0.1, // Minimum zoom value
+            Inverse = true, // Whether to inverse the direction of the zoom when using the wheel
+            }
+        };
+        this.designer = new(options);
+
+        this.service = new Service(this.designer, this.StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        service?.Dispose();
+    }
+
+    private void OnDragStart(ToolBoxItem key)
+    {
+        draggedToolboxItem = key;
+    }
+
+    private void OnDrop(DragEventArgs e)
+    {
+        if (draggedToolboxItem == null) 
+            return;
+
+        (bool hasAdded, var result) = service.AddActivity(draggedToolboxItem.TypeOfActivity);
+        if (hasAdded) {
+            var position = designer.GetRelativeMousePoint(e.ClientX, e.ClientY);
+            result.Node.Position = position;
+        }
+
+        draggedToolboxItem = null;
+    }
+
+    public void Edit(System.Activities.Activity source) {
+        service.SetActivity(source);
+    }
+
+    public void Load(string source) {
+        var activity = (System.Activities.Activity)System.Xaml.XamlServices.Parse(source);
+        service.SetActivity(activity);
+    }
+
+    public string Save() {
+        var activity = service.GetActivity();
+        return System.Xaml.XamlServices.Save(activity);
+    }
+
+
+}

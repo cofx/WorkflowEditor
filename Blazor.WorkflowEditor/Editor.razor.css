@@ -1,0 +1,62 @@
+﻿
+.editor {
+    width: 300px;
+    height: 300px;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    flex-wrap: wrap;
+}
+
+.toolbox {
+    margin: 2px;
+    padding: 2px;
+    border: thin solid gray;
+    min-width: 20%;
+}
+
+    .toolbox .caption {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+.groupItem {
+    padding: 2px;
+}
+
+    .groupItem .groupName {
+        font-size: 14px;
+        font-weight: bold;
+        cursor: default;
+    }
+
+    .groupItem .activityItem {
+        font-size: 12px;
+        cursor: move;
+    }
+
+
+.component {
+    background-color: Window;
+    text-align: center;
+    margin: 4px;
+}
+
+.diagram {
+    width: 75vw;
+    height: 75vh;
+    background-color: burlywood
+}
+
+.variables {
+    margin: 2px;
+    padding: 2px;
+    border: thin solid gray;
+    width: 100%;
+}
+    .variables .caption {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }

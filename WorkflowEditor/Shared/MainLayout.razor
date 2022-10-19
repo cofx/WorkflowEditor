@@ -1,0 +1,87 @@
+﻿@using System.Activities
+@inherits LayoutComponentBase
+
+<PageTitle>Workflow editor</PageTitle>
+
+<h2>Workflow editor</h2>
+
+<button @onclick="loadTestActivity">LoadTestActivity</button>
+<button @onclick="loadTest2Activity">LoadTest2Activity</button>
+
+<Blazor.WorkflowEditor.Editor  @ref="editor" ToolBoxGroups="groups" />
+
+
+@code {
+    private Blazor.WorkflowEditor.Editor? editor = default!;
+    private List<Blazor.WorkflowEditor.ToolBoxGroup> groups { get; set; } = new()!;
+
+    protected override void OnInitialized() {
+
+        var defaultGroup = new Blazor.WorkflowEditor.ToolBoxGroup() { Name = "Default" };
+        defaultGroup.Add<System.Activities.Statements.Sequence>();
+        defaultGroup.Add<System.Activities.Statements.Assign>("oi oi-pencil");
+        defaultGroup.Add<System.Activities.Statements.WriteLine>("oi oi-pencil");
+        groups.Add(defaultGroup);
+
+        var testGroup = new Blazor.WorkflowEditor.ToolBoxGroup() { Name = "Test" };
+        testGroup.Add<System.Activities.Statements.Assign>();
+        testGroup.Add<System.Activities.Statements.Assign>();
+        groups.Add(testGroup);
+
+    }
+
+    protected override void OnAfterRender(bool firstRender) {
+//        if (firstRender)
+//            editor.RegisterModelComponent();
+
+    }
+
+    void loadTestActivity() {
+        var text = @"
+<Sequence
+	xmlns=""http://schemas.microsoft.com/netfx/2009/xaml/activities""
+	xmlns:x=""http://schemas.microsoft.com/winfx/2006/xaml"">
+	<Sequence.Variables>
+		<Variable x:TypeArguments=""x:String"" Name=""TestVar"" />
+	</Sequence.Variables>
+	<WriteLine Text=""Hello World!"" />
+</Sequence>";
+        if(editor != null)
+            editor.Load(text);
+
+    }
+
+    void loadTest2Activity() { 
+        var da = new System.Activities.DynamicActivity();
+        da.Properties.Add(
+            new DynamicActivityProperty {
+                    Name = "Numbers",
+                    Type = typeof(InArgument<int>)
+                });
+        da.Properties.Add(
+            new DynamicActivityProperty {
+                    Name = "Average",
+                    Type = typeof(OutArgument<string>)
+                });
+        da.Properties.Add(new DynamicActivityProperty()
+            {
+                Name = "Var1",
+                Type = typeof(int),
+                Value = 123
+            });
+
+        var sequence = new System.Activities.Statements.Sequence()
+        {
+        };
+        sequence.Variables.Add(new Variable<int>("Test1"));
+        sequence.Activities.Add(new System.Activities.Statements.WriteLine() { Text = "test1" });
+        sequence.Activities.Add(new System.Activities.Statements.WriteLine() { Text = "test2" });
+        sequence.Activities.Add(new System.Activities.Statements.WriteLine() { Text = "test3" });
+
+        da.Implementation = () => sequence;
+
+        if(editor != null)
+        editor.Edit(da);
+    }
+
+}
