@@ -1,8 +1,8 @@
-﻿using Blazor.Diagrams.Core;
+﻿using System.Activities;
+using System.Collections.ObjectModel;
+using Blazor.Diagrams.Core;
 using Blazor.Diagrams.Core.Models;
 using Blazor.WorkflowEditor.Activity;
-using System.Activities;
-using System.Collections.ObjectModel;
 
 namespace Blazor.WorkflowEditor {
 
@@ -23,10 +23,9 @@ namespace Blazor.WorkflowEditor {
         public ObservableCollection<PathItem> Path = new();
         public ObservableCollection<Variable> Variables { get; set; } = new();
 
-        //----------
         public Service(Diagram designer, Action updateState) {
-
-            //регистрация связей типов активити из их редакторов по умолчанию
+            //register links activity to node to designer
+            //TODO: Replace to attribute
             addTypeActivityDesignerPair(
                 typeof(System.Activities.DynamicActivity),
                 typeof(Activity.DynamicActivityNode),
@@ -73,7 +72,6 @@ namespace Blazor.WorkflowEditor {
                 designer.RegisterModelComponent(item.Node, item.Designer);
         }
 
-        //------
 
         public void Dispose() {
             this.designer.SelectionChanged -= selectionChanged;
@@ -190,8 +188,7 @@ namespace Blazor.WorkflowEditor {
                 else
                     selectedItems.Remove(item);
 
-            }
-            else
+            } else
             if (obj is LinkModel link) {
                 if (link.TargetNode == null)
                     return;
@@ -204,8 +201,7 @@ namespace Blazor.WorkflowEditor {
 
                 if (obj.Selected) {
                     selectedLinks.Add((source, target));
-                }
-                else {
+                } else {
                     selectedLinks.Remove((source, target));
                 }
             }
@@ -308,19 +304,19 @@ namespace Blazor.WorkflowEditor {
             var node = (Activator.CreateInstance(nodeType, this, activity) as Activity.DefaultNode)!;
             designer.Nodes.Add(node);
 
-            //добавим в список сопряжения
+            //get position
+            //TODO: Get position
+
+            //set position
+            //TODO: Set position
+
+            //add to linked list
             ActivityDesignerPair result = new() { Activity = activity!, Node = node };
             items.Add(result);
 
             return result;
         }
 
-
-
-
-
     }
-
-
 
 }
