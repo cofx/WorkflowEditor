@@ -151,6 +151,14 @@ namespace Blazor.WorkflowEditor {
             Path.Add(new PathItem(item));
         }
 
+        public void OpenPath(PathItem pathItem) {
+            if (Path.Contains(pathItem) == false)
+                return;
+
+            while (Path.Last() != pathItem)
+                Path.RemoveAt(Path.Count - 1);
+        }
+
         public bool CheckAddActivity(Type activityType) {
             //if (topActivity == null)
             //    return true;
