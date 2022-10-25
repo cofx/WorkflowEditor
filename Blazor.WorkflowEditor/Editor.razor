@@ -9,34 +9,39 @@
         </div>
 
         <ul class="groups list-unstyled">
-            @foreach (var group in this.ToolBoxGroups) {
-            <li class="groupItem">
-                <div class="groupName"> @group.Name </div>
-                <ul class="items list-unstyled">
-                        @foreach (var item in group.Items) {
+            @foreach (var group in this.ToolBoxGroups)
+            {
+                <li class="groupItem">
+                    <div class="groupName"> @group.Name </div>
+                    <ul class="items list-unstyled">
+                        @foreach (var item in group.Items)
+                        {
                             <li @key="item" class="activityItem" draggable="true" @ondragstart="() => OnDragStart(item)">
-                                @if (item.Image != null) {
+                                @if (item.Image != null)
+                                {
                                     <span class="@item.Image" aria-hidden="true"></span>
                                 }
                                 @item.Name
-                        </li>
-                    }
-                </ul>
-            </li>
+                            </li>
+                        }
+                    </ul>
+                </li>
             }
         </ul>
     </div>
 
     <div class="diagram" ondragover="event.preventDefault();" @ondragover:preventDefault @ondrop="OnDrop">
         <div class="path">
-            @foreach (var pathItem in service.Path) {
-                <div>@pathItem.Name</div>
+            @foreach (var pathItem in service.Path)
+            {
+                <div class="pathSeparator">\</div>
+                <div class="pathItem" @onclick="()=>OpenPath(pathItem)">@pathItem.Name</div>
             }
         </div>
 
         <CascadingValue Value="designer">
-               <CascadingValue Value="service">
-            <DiagramCanvas></DiagramCanvas>
+            <CascadingValue Value="service">
+                <DiagramCanvas></DiagramCanvas>
             </CascadingValue>
         </CascadingValue>
 
@@ -49,7 +54,8 @@
         </div>
 
         <ul class="groups list-unstyled">
-            @foreach (var variable in service.Variables) {
+            @foreach (var variable in service.Variables)
+            {
                 <li class="groupItem">
                     <div class="groupName"> @variable.Name </div>
                 </li>
@@ -77,12 +83,12 @@
             DefaultNodeComponent = null, // Default component for nodes
             AllowMultiSelection = true, // Whether to allow multi selection using CTRL
             Links = new DiagramLinkOptions
-            { 
+            {
             },
             Zoom = new DiagramZoomOptions
             {
-            Minimum = 0.1, // Minimum zoom value
-            Inverse = true, // Whether to inverse the direction of the zoom when using the wheel
+                Minimum = 0.1, // Minimum zoom value
+                Inverse = true, // Whether to inverse the direction of the zoom when using the wheel
             }
         };
         this.designer = new(options);
@@ -102,11 +108,12 @@
 
     private void OnDrop(DragEventArgs e)
     {
-        if (draggedToolboxItem == null) 
+        if (draggedToolboxItem == null)
             return;
 
         (bool hasAdded, var result) = service.AddActivity(draggedToolboxItem.TypeOfActivity);
-        if (hasAdded) {
+        if (hasAdded)
+        {
             var position = designer.GetRelativeMousePoint(e.ClientX, e.ClientY);
             result.Node.Position = position;
         }
@@ -114,18 +121,26 @@
         draggedToolboxItem = null;
     }
 
-    public void Edit(System.Activities.Activity source) {
+    public void Edit(System.Activities.Activity source)
+    {
         service.SetActivity(source);
     }
 
-    public void Load(string source) {
+    public void Load(string source)
+    {
         var activity = (System.Activities.Activity)System.Xaml.XamlServices.Parse(source);
         service.SetActivity(activity);
     }
 
-    public string Save() {
+    public string Save()
+    {
         var activity = service.GetActivity();
         return System.Xaml.XamlServices.Save(activity);
+    }
+
+    public void OpenPath(PathItem pathItem)
+    {
+        service.OpenPath(pathItem);
     }
 
 

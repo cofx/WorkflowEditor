@@ -1,5 +1,4 @@
-﻿
-.editor {
+﻿.editor {
     width: 300px;
     height: 300px;
     display: flex;
@@ -15,26 +14,26 @@
     min-width: 20%;
 }
 
-    .toolbox .caption {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
+.toolbox .caption {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 
 .groupItem {
     padding: 2px;
 }
 
-    .groupItem .groupName {
-        font-size: 14px;
-        font-weight: bold;
-        cursor: default;
-    }
+.groupItem .groupName {
+    font-size: 14px;
+    font-weight: bold;
+    cursor: default;
+}
 
-    .groupItem .activityItem {
-        font-size: 12px;
-        cursor: move;
-    }
+.groupItem .activityItem {
+    font-size: 12px;
+    cursor: move;
+}
 
 
 .component {
@@ -49,14 +48,29 @@
     background-color: burlywood
 }
 
+.diagram .path {
+    display: flex;
+    font-size: small;
+}
+
+.diagram .path .pathItem {
+    cursor: pointer;
+}
+
+.diagram .path .pathSeparator {
+    margin-left: 2px;
+    margin-right: 2px;
+}
+
 .variables {
     margin: 2px;
     padding: 2px;
     border: thin solid gray;
     width: 100%;
 }
-    .variables .caption {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
+
+.variables .caption {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
