@@ -1,5 +1,5 @@
-﻿using Blazor.Diagrams.Core.Models;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
+using Blazor.Diagrams.Core.Models;
 
 namespace Blazor.WorkflowEditor.Activity;
 

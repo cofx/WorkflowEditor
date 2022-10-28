@@ -2,7 +2,9 @@
 using System.Collections.ObjectModel;
 using Blazor.Diagrams.Core;
 using Blazor.Diagrams.Core.Models;
+using Blazor.Diagrams.Core.Models.Base;
 using Blazor.WorkflowEditor.Activity;
+using Microsoft.AspNetCore.Components.Web;
 
 namespace Blazor.WorkflowEditor {
 
@@ -22,6 +24,8 @@ namespace Blazor.WorkflowEditor {
 
         public ObservableCollection<PathItem> Path = new();
         public ObservableCollection<Variable> Variables { get; set; } = new();
+
+        public event Action? SelectedOnMove;
 
         public Service(Diagram designer, Action updateState) {
             //register links activity to node to designer
@@ -54,6 +58,8 @@ namespace Blazor.WorkflowEditor {
             this.designer.Links.Added += linksAdded;
             this.designer.Links.Removed += linksRemoved;
 
+            this.designer.MouseUp += mouseUp;
+
             this.Path.CollectionChanged += pathChanged;
 
             this.updateState = updateState;
@@ -82,6 +88,8 @@ namespace Blazor.WorkflowEditor {
 
             this.designer.Links.Added -= linksAdded;
             this.designer.Links.Removed -= linksRemoved;
+
+            this.designer.MouseUp -= mouseUp;
         }
 
         public void Delete(Activity.DefaultNode node) {
@@ -167,10 +175,11 @@ namespace Blazor.WorkflowEditor {
         }
 
 
-        internal void LinkFromTo(ActivityDesignerPair from, ActivityDesignerPair to) {
+        internal LinkModel LinkFromTo(ActivityDesignerPair from, ActivityDesignerPair to) {
             var linkModel = new LinkModel(from.Node.GetFromPort(), to.Node.GetToPort());
             linkModel.TargetMarker = LinkMarker.Arrow;
             designer.Links.Add(linkModel);
+            return linkModel;
         }
         internal void RemoveLinkFromTo(ActivityDesignerPair from, ActivityDesignerPair to) {
             var link = designer.Links.FirstOrDefault(p => p.SourceNode == from.Node && p.TargetNode == to.Node);
@@ -255,6 +264,13 @@ namespace Blazor.WorkflowEditor {
             items.Remove(item);
             */
         }
+
+
+        private void mouseUp(Model model, MouseEventArgs arg) {
+            if (model is DefaultNode node)
+                SelectedOnMove?.Invoke();
+        }
+
 
         private void pathChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
             if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add) {

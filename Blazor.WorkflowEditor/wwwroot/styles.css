@@ -1,26 +1,33 @@
-﻿
-.custom-node {
+﻿.custom-node {
     width: 250px;
 }
-    .custom-node .card {
-        border: 3px solid transparent;
-    }
-    .custom-node .isSelected {
-        border-color: #0d6efd;
-        z-index: 2147483646;
-    }
-    .custom-node .isSelected .port {
-        z-index: 2147483647;
-    }
-    .custom-node .port {
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background-color: #f5f5f5;
-        border: 1px solid #d4d4d4;
-        cursor: pointer;
-        visibility: visible;
-    }
+
+.custom-node .card {
+    border: 3px solid transparent;
+}
+
+.custom-node .isSelected {
+    border-color: #0d6efd;
+    z-index: 2147483646;
+}
+
+.custom-node .isSelected .port {
+    z-index: 2147483647;
+}
+
+.custom-node .port {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #f5f5f5;
+    border: 1px solid #d4d4d4;
+    cursor: pointer;
+    visibility: visible;
+}
+
+.custom-node .port.locked {
+    visibility: hidden;
+}
 
 /*    .custom-node .isContainer {
         border-bottom: 3px solid yellow;
@@ -47,14 +54,14 @@
 */
 
 
-        .custom-node .port.bottom {
-            position: absolute;
-            bottom: -10px;
-            left: 115px;
-        }
+.custom-node .port.bottom {
+    position: absolute;
+    bottom: -10px;
+    left: 115px;
+}
 
-        .custom-node .port.top {
-            position: absolute;
-            top: -10px;
-            left: 115px;
-        }
+.custom-node .port.top {
+    position: absolute;
+    top: -10px;
+    left: 115px;
+}
