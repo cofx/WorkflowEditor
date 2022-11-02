@@ -22,8 +22,8 @@ public class SequenceNode : DefaultNode {
 
     void linkFromTo(ActivityDesignerPair from, ActivityDesignerPair to) {
         var link = service.LinkFromTo(from, to);
-        link.Router = Diagrams.Core.Routers.Orthogonal;
-        link.PathGenerator = Diagrams.Core.PathGenerators.Straight;
+        //link.Router = Diagrams.Core.Routers.Orthogonal;
+        //link.PathGenerator = Diagrams.Core.PathGenerators.Straight;
     }
 
     public override void LoadChilds(Func<System.Activities.Activity, ActivityDesignerPair> addActivity) {
@@ -89,23 +89,36 @@ public class SequenceNode : DefaultNode {
             var index = sequenceActivity.Activities.IndexOf(pair.Activity);
 
             if (index >= 0 && index < sequenceActivity.Activities.Count - 1) {
-                var first = pair;
-                var second = service.GetPair(sequenceActivity.Activities[index + 1]);
-                reconnect(first, second);
+                var source = pair;
+                var dest = service.GetPair(sequenceActivity.Activities[index + 1]);
+                reconnect(source, dest);
             }
 
             if (index >= 1 && index < sequenceActivity.Activities.Count) {
-                var first = service.GetPair(sequenceActivity.Activities[index - 1]);
-                var second = pair;
-                reconnect(first, second);
+                var source = service.GetPair(sequenceActivity.Activities[index - 1]);
+                var dest = pair;
+                reconnect(source, dest);
             }
 
         }
     }
 
-    private void reconnect(ActivityDesignerPair first, ActivityDesignerPair second) {
-        if (first.Node.Position.X < second.Node.Position.X && first.Node.Position.Y < second.Node.Position.Y) {
-            //first.Node.GetFromPort().Alignment  
-        }
+    private void reconnect(ActivityDesignerPair source, ActivityDesignerPair dest) {
+        var avalableSourcePorts = source.Node.Ports.ToList();
+        if (source.Node.IncomingPort?.Links.Count > 0)
+            avalableSourcePorts.Remove(source.Node.IncomingPort);
+
+        var avalableDestPorts = dest.Node.Ports.ToList();
+        if (dest.Node.OutcomingPort?.Links.Count > 0)
+            avalableDestPorts.Remove(dest.Node.OutcomingPort);
+
+        List<(PortModel sourcePort, PortModel destPort, double Distance)> items =
+                (from fp in avalableSourcePorts
+                 from sp in avalableDestPorts
+                 select (fp, sp, Math.Abs(fp.Position.DistanceTo(sp.Position)))).ToList();
+
+        (PortModel sourcePort, PortModel destPort, double _) = items.OrderBy(p => p.Distance).First();
+        source.Node.SetOutcoming(sourcePort);
+        dest.Node.SetIncoming(destPort);
     }
 }

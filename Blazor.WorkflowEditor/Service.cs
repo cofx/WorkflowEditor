@@ -176,7 +176,7 @@ namespace Blazor.WorkflowEditor {
 
 
         internal LinkModel LinkFromTo(ActivityDesignerPair from, ActivityDesignerPair to) {
-            var linkModel = new LinkModel(from.Node.GetFromPort(), to.Node.GetToPort());
+            var linkModel = new LinkModel(from.Node.OutcomingPort, to.Node.IncomingPort);
             linkModel.TargetMarker = LinkMarker.Arrow;
             designer.Links.Add(linkModel);
             return linkModel;

@@ -1,5 +1,6 @@
 ﻿.custom-node {
     width: 250px;
+    height: 114px;
 }
 
 .custom-node .card {
@@ -16,6 +17,7 @@
 }
 
 .custom-node .port {
+    position: absolute;
     width: 20px;
     height: 20px;
     border-radius: 50%;
@@ -23,45 +25,29 @@
     border: 1px solid #d4d4d4;
     cursor: pointer;
     visibility: visible;
+    margin: -10px;
 }
 
 .custom-node .port.locked {
     visibility: hidden;
 }
 
-/*    .custom-node .isContainer {
-        border-bottom: 3px solid yellow;
-    }*/
-
-/*    .custom-node:hover .port {
-        visibility: visible;
-    }
-
-    .custom-node .port {
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background-color: #f5f5f5;
-        border: 1px solid #d4d4d4;
-        cursor: pointer;
-        visibility: hidden;
-    }
-
-        .custom-node .port:hover, .node > .card .port.has-links {
-            visibility: visible;
-            background-color: black;
-        }
-*/
-
-
 .custom-node .port.bottom {
-    position: absolute;
-    bottom: -10px;
-    left: 115px;
+    bottom: 0px;
+    left: 50%;
 }
 
 .custom-node .port.top {
-    position: absolute;
-    top: -10px;
-    left: 115px;
+    top: 0px;
+    left: 50%;
+}
+
+.custom-node .port.left {
+    left: 0px;
+    top: 50%;
+}
+
+.custom-node .port.right {
+    right: 0px;
+    top: 50%;
 }
