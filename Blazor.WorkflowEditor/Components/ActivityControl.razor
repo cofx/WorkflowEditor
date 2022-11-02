@@ -2,27 +2,30 @@
 
 <div class="custom-node">
     <div class="card @Node.CssClass">
-        @if(!Node.IsExpanded){
+        @if (!Node.IsExpanded)
+        {
             <div class="card-body">
                 <h5 class="card-title">@Node.Text</h5>
-                @if(Node.IsContainer){
-                <a href="" class="card-link" @onclick="@open" @onclick:preventDefault>Open</a>
-                }else{
-                <a href="" class="card-link" @onclick="@expand" @onclick:preventDefault>Edit</a>
+                @if (Node.IsContainer)
+                {
+                    <a href="" class="card-link" @onclick="@open" @onclick:preventDefault>Open</a>
+                }
+                else
+                {
+                    <a href="" class="card-link" @onclick="@expand" @onclick:preventDefault>Edit</a>
                 }
                 <a href="" class="card-link" @onclick="@delete" @onclick:preventDefault>Delete</a>
             </div>
-        }else{
+        }
+        else
+        {
             <div class="card-body">
                 <form>
                     <div class="mb-3">
                         <label for="displayName" class="form-label">Display name</label>
-                        <input type="text" class="form-control" id="displayName"
-                                    @bind-value="Node.Text"
-                                    placeholder="Input activity display name"
-                                    @onmousedown:stopPropagation
-                                    @onmouseup:stopPropagation
-                                    @onmousemove:stopPropagation />
+                        <input type="text" class="form-control" id="displayName" @bind-value="Node.Text"
+                        placeholder="Input activity display name" @onmousedown:stopPropagation
+                        @onmouseup:stopPropagation @onmousemove:stopPropagation />
                     </div>
                     @Edit
                 </form>
@@ -30,10 +33,11 @@
             </div>
         }
 
-    @foreach (var port in Node.Ports)
-    {
-        <PortRenderer Port="port"></PortRenderer>
-    }
+        @foreach (var port in Node.Ports)
+        {
+            var portClass = port.Locked ? "locked" : "unlocked";
+            <PortRenderer Port="port" Class="@portClass"></PortRenderer>
+        }
     </div>
 
 </div>
@@ -48,16 +52,20 @@
     [Parameter, AllowNull]
     public RenderFragment? Edit { get; set; }
 
-    void open() {
+    void open()
+    {
         Service.Open(Node);
     }
-    void expand() {
+    void expand()
+    {
         Node.IsExpanded = true;
     }
-    void collapce() {
+    void collapce()
+    {
         Node.IsExpanded = false;
     }
-    void delete() {
+    void delete()
+    {
         Service.Delete(Node);
     }
 }
