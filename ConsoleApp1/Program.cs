@@ -3,6 +3,6 @@
 Console.WriteLine("Hello, World");
 
 //TestHelper.Test1();
-TestHelper.TestIgnorableAttribute();
+TestHelper.TestAttachedProperty();
 
 Console.ReadKey();
