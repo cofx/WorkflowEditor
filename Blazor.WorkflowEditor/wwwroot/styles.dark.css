@@ -1,0 +1,30 @@
+.diagram {
+    background-color: #494949;
+}
+
+.custom-node .card {
+    border: 1px solid darkgray;
+}
+
+.custom-node .isSelected {
+    border-color: white;
+}
+
+.card {
+    background-color: gray;
+    background-clip: border-box;
+    border: 1px solid rgba(0, 0, 0, .125);
+    border-radius: 0px;
+    color: antiquewhite;
+}
+
+.card-body {
+    padding: 0.2rem;
+}
+
+
+.card-title {
+    margin-bottom: 0px;
+    font-size: 0.8rem;
+    font-weight: normal;
+}
