@@ -1,4 +1,8 @@
-﻿.custom-node {
+﻿.diagram {
+    background-color: burlywood
+}
+
+.custom-node {
     width: 250px;
     height: 114px;
 }

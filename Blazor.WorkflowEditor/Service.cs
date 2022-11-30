@@ -51,14 +51,9 @@ namespace Blazor.WorkflowEditor {
 
             this.designer.SelectionChanged += selectionChanged;
             this.designer.MouseDoubleClick += mouseDoubleClick;
-
-            this.designer.Nodes.Added += nodesAdded;
-            this.designer.Nodes.Removed += nodesRemoved;
-
-            this.designer.Links.Added += linksAdded;
-            this.designer.Links.Removed += linksRemoved;
-
             this.designer.MouseUp += mouseUp;
+            this.designer.PanChanged += panChanged;
+            this.designer.ZoomChanged += zoomChanged;
 
             this.Path.CollectionChanged += pathChanged;
 
@@ -83,13 +78,10 @@ namespace Blazor.WorkflowEditor {
             this.designer.SelectionChanged -= selectionChanged;
             this.designer.MouseDoubleClick -= mouseDoubleClick;
 
-            this.designer.Nodes.Added -= nodesAdded;
-            this.designer.Nodes.Removed -= nodesRemoved;
-
-            this.designer.Links.Added -= linksAdded;
-            this.designer.Links.Removed -= linksRemoved;
-
             this.designer.MouseUp -= mouseUp;
+
+            this.designer.PanChanged -= panChanged;
+            this.designer.ZoomChanged -= zoomChanged;
         }
 
         public void Delete(Activity.DefaultNode node) {
@@ -232,45 +224,23 @@ namespace Blazor.WorkflowEditor {
             Open(item.Node);
         }
 
-        private void linksAdded(Diagrams.Core.Models.Base.BaseLinkModel link) {
-            link.SourcePortChanged += linkSourcePortChanged;
-            link.TargetPortChanged += linkTargetPortChanged;
-        }
-
-        private void linksRemoved(Diagrams.Core.Models.Base.BaseLinkModel link) {
-            link.SourcePortChanged -= linkSourcePortChanged;
-            link.TargetPortChanged -= linkTargetPortChanged;
-        }
-
-        private void linkTargetPortChanged(Diagrams.Core.Models.Base.BaseLinkModel arg1, PortModel? arg2, PortModel? arg3) {
-
-        }
-
-        private void linkSourcePortChanged(Diagrams.Core.Models.Base.BaseLinkModel arg1, PortModel? arg2, PortModel? arg3) {
-
-        }
-
-        private void nodesAdded(NodeModel obj) {
-
-        }
-
-        private void nodesRemoved(NodeModel obj) {
-            /*
-            var item = getById(obj.Id);
-            if (item == null)
-                return;
-
-            selected.Remove(item);
-            items.Remove(item);
-            */
-        }
-
-
         private void mouseUp(Model model, MouseEventArgs arg) {
-            if (model is DefaultNode node)
-                SelectedOnMove?.Invoke();
+            if (arg.OffsetX > 50 || arg.OffsetY > 50) {
+                if (model is DefaultNode node) {
+                    SelectedOnMove?.Invoke();
+
+                    node.UpdateViewState();
+                }
+            }
+        }
+        private void zoomChanged() {
+            //this.Path.Last().Reference.Node.
+            //throw new NotImplementedException();
         }
 
+        private void panChanged() {
+            //throw new NotImplementedException();
+        }
 
         private void pathChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
             if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add) {
@@ -312,6 +282,9 @@ namespace Blazor.WorkflowEditor {
         private void load(ActivityDesignerPair? activityDesignerPair) {
             designer.Nodes.Clear();
 
+            this.selectedItems.Clear();
+            this.selectedLinks.Clear();
+
             if (activityDesignerPair is not null)
                 activityDesignerPair.Node.LoadChilds(addActivity);
             else
@@ -327,12 +300,7 @@ namespace Blazor.WorkflowEditor {
 
             var node = (Activator.CreateInstance(nodeType, this, activity) as Activity.DefaultNode)!;
             designer.Nodes.Add(node);
-
-            //get position
-            //TODO: Get position
-
-            //set position
-            //TODO: Set position
+            node.RestoreViewState();
 
             //add to linked list
             ActivityDesignerPair result = new() { Activity = activity!, Node = node };
