@@ -1,75 +1,62 @@
-﻿.editor {
-    width: 300px;
-    height: 300px;
+﻿.editor{
     display: flex;
-    width: 100%;
-    height: 100%;
-    flex-wrap: wrap;
+    height: 95vh;
 }
 
-.toolbox {
-    margin: 2px;
-    padding: 2px;
-    border: thin solid gray;
-    min-width: 20%;
+.editor .toolbox{
+    flex: none;
+    width: 400px;
 }
 
-.toolbox .caption {
+.editor .toolbox .caption {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    justify-content: flex-end;
 }
 
-.groupItem {
+.editor .groupItem {
     padding: 2px;
 }
 
-.groupItem .groupName {
-    font-size: 14px;
+.editor .groupItem .groupName {
     font-weight: bold;
     cursor: default;
 }
 
-.groupItem .activityItem {
-    font-size: 12px;
+.editor .groupItem .activityItem {
     cursor: move;
+    padding-left: 12px;
 }
 
-
-.component {
-    background-color: Window;
-    text-align: center;
-    margin: 4px;
+.editor .groupItem .activityItemWithoutIcon {
+    cursor: move;
+    padding-left: 30px;
 }
 
-.diagram {
-    width: 75vw;
-    height: 75vh;
-}
-
-.diagram .path {
+.editor .diagram-editor{
+    flex:2;
     display: flex;
-    font-size: small;
+    flex-direction: column;    
+    height: 100%;
 }
 
-.diagram .path .pathItem {
-    cursor: pointer;
+.editor .diagram-editor .diagram-path{
+    flex: none;
+    height: 24px;    
 }
 
-.diagram .path .pathSeparator {
-    margin-left: 2px;
-    margin-right: 2px;
+.editor .diagram-editor .diagram-main {
+    flex: auto;
 }
 
-.variables {
-    margin: 2px;
-    padding: 2px;
-    border: thin solid gray;
-    width: 100%;
+.editor .diagram-editor .diagram-main .diagram{
+    height: 100%;
 }
 
-.variables .caption {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.editor .diagram-editor .variables{
+    flex:none;
 }
+
+.btn:focus,.btn:active {
+    outline: none !important;
+    box-shadow: none;
+ }

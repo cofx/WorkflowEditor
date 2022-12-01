@@ -2,65 +2,108 @@
 
 <div class="editor">
 
-    <div class="toolbox">
+    <div class="toolbox" style="@toolboxStyle">
         <div class="caption">
-            <div>Activities</div>
-            <button>##</button>
+            <button type="button" class="btn" @onclick="()=>ToolboxCollapse()">
+                <span class="oi @ToolboxCollapsedIcon() text-primary" aria-hidden="true"></span>
+            </button>
         </div>
-
-        <ul class="groups list-unstyled">
-            @foreach (var group in this.ToolBoxGroups)
-            {
-                <li class="groupItem">
-                    <div class="groupName"> @group.Name </div>
-                    <ul class="items list-unstyled">
-                        @foreach (var item in group.Items)
-                        {
-                            <li @key="item" class="activityItem" draggable="true" @ondragstart="() => OnDragStart(item)">
-                                @if (item.Image != null)
-                                {
-                                    <span class="@item.Image" aria-hidden="true"></span>
-                                }
-                                @item.Name
-                            </li>
-                        }
-                    </ul>
-                </li>
-            }
-        </ul>
+        @if (!toolboxCollapsed)
+        {
+            <ul class="groups list-unstyled">
+                @foreach (var group in this.ToolBoxGroups)
+                {
+                    <li class="groupItem">
+                        <div class="groupName" @onclick="()=>CollapseGroup(group.Name)">
+                            <span class="oi @GroupCollapsedIcon(group.Name)" aria-hidden="true"></span>
+                            @group.Name
+                        </div>
+                        <ul class="items list-unstyled @(HasGroupCollapsed(group.Name))">
+                            @foreach (var item in group.Items)
+                            {
+                                <li @key="item" class="@((item.Image==null?"activityItemWithoutIcon":"activityItem"))" draggable="true" @ondragstart="() => OnDragStart(item)">
+                                    @if (item.Image != null)
+                                    {
+                                        <span class="@item.Image" aria-hidden="true"></span>
+                                    }
+                                    @item.Name
+                                </li>
+                            }
+                        </ul>
+                    </li>
+                }
+            </ul>
+        }
     </div>
 
-    <div class="diagram" ondragover="event.preventDefault();" @ondragover:preventDefault @ondrop="OnDrop">
-        <div class="path">
-            @foreach (var pathItem in service.Path)
-            {
-                <div class="pathSeparator">\</div>
-                <div class="pathItem" @onclick="()=>OpenPath(pathItem)">@pathItem.Name</div>
-            }
+    <div class="diagram-editor">
+        <div class="diagram-path">
+            <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                @foreach (var pathItem in service.Path)
+                {
+                    <li class="breadcrumb-item"><a href="#" @onclick="()=>OpenPath(pathItem)">@pathItem.Name</a></li>
+                }
+                </ol>
+            </nav>
         </div>
 
-        <CascadingValue Value="designer">
-            <CascadingValue Value="service">
-                <DiagramCanvas></DiagramCanvas>
-            </CascadingValue>
-        </CascadingValue>
-
-    </div>
-
-    <div class="variables">
-        <div class="caption">
-            <div>Variables</div>
-            <button>##</button>
+        <div class="diagram-main">
+            <div class="diagram" ondragover="event.preventDefault();" @ondragover:preventDefault @ondrop="OnDrop">
+                <CascadingValue Value="designer">
+                    <CascadingValue Value="service">
+                        <DiagramCanvas></DiagramCanvas>
+                    </CascadingValue>
+                </CascadingValue>
+            </div>
+        </div>        
+        
+        <div class="variables">
+            <table class="table-sm caption-top w-100">
+                <caption class="clear-fix">
+                    Variables
+                    <div class="float-end">
+                        <div>
+                            <button type="button" class="btn">
+                                <span class="oi oi-plus text-primary" aria-hidden="true"></span>
+                            </button>
+                            <button type="button" class="btn" @onclick="()=>variabledCollapsed=!variabledCollapsed">
+                                <span class="oi @VariablesCollapsedIcon() text-primary" aria-hidden="true"></span>
+                            </button>
+                        </div>
+                    </div>
+                </caption>
+                <thead class="@HasVariablesCollapsed()">
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Type</th>
+                        <th scope="col">Default value</th>
+                        <th scope="col"></th>
+                    </tr>
+                </thead>
+                <tbody class="@HasVariablesCollapsed()">
+        @foreach (var variable in service.Variables)
+        {
+                        <tr>
+                            <td>@variable.Name</td>
+                            <td>@variable.Type</td>
+                            <td>@variable.DefaultValue</td>
+                            <td>
+                                <div class="float-end">
+                                    <button type="button" class="btn">
+                                        <span class="oi oi-pencil text-primary" aria-hidden="true"></span>
+                                    </button>
+                                    <button type="button" class="btn">
+                                        <span class="oi oi-x text-danger" aria-hidden="true"></span>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+        }
+                </tbody>
+            </table>
         </div>
 
-        <ul class="groups list-unstyled">
-            @foreach (var variable in service.Variables)
-            {
-                <li class="groupItem">
-                    <div class="groupName"> @variable.Name </div>
-                </li>
-            }
-        </ul>
     </div>
 
 </div>
@@ -72,6 +115,11 @@
 
     [Parameter, EditorRequired]
     public IEnumerable<ToolBoxGroup> ToolBoxGroups { get; set; } = default!;
+    private IDictionary<string, bool> collapsedGroups = new Dictionary<string, bool>();
+    private bool variabledCollapsed = false;
+    private bool toolboxCollapsed = false;
+    private int toolboxWidth = 36;
+    private string toolboxStyle = "";
 
     protected override void OnInitialized()
     {
@@ -94,6 +142,11 @@
         this.designer = new(options);
 
         this.service = new Service(this.designer, this.StateHasChanged);
+
+        foreach (var item in this.ToolBoxGroups.Where(p => p.Items.Count != 0))
+        {
+            collapsedGroups.Add(item.Name, false);
+        }
     }
 
     public void Dispose()
@@ -143,5 +196,52 @@
         service.OpenPath(pathItem);
     }
 
+    private void CollapseGroup(string name)
+    {
+        if (collapsedGroups.ContainsKey(name))
+        {
+            collapsedGroups[name] = !collapsedGroups[name];
+        }
+    }
 
+    private string HasGroupCollapsed(string name)
+    {
+        if (collapsedGroups.ContainsKey(name))
+        {
+            return collapsedGroups[name] ? "collapse" : "";
+        }
+        return string.Empty;
+    }
+
+    private string GroupCollapsedIcon(string name)
+    {
+        if (collapsedGroups.ContainsKey(name))
+        {
+            return collapsedGroups[name] ? "oi oi-plus" : "oi oi-minus";
+        }
+        return "";
+    }
+
+    private string VariablesCollapsedIcon()
+    {
+        return variabledCollapsed ? "oi oi-arrow-top" : "oi oi-arrow-bottom";
+    }
+
+    private string HasVariablesCollapsed()
+    {
+        return variabledCollapsed ? "collapse" : "";
+    }
+
+    private void ToolboxCollapse()
+    {
+        toolboxCollapsed = !toolboxCollapsed;
+        toolboxWidth = toolboxCollapsed ? 36 : 400;
+        toolboxStyle = $"width: {toolboxWidth}px;";
+        Console.WriteLine(toolboxStyle);
+
+    }
+    private string ToolboxCollapsedIcon()
+    {
+        return toolboxCollapsed ? "oi oi-arrow-right" : "oi oi-arrow-left";
+    }
 }

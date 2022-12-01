@@ -4,21 +4,48 @@
     <div class="card @Node.CssClass">
         @if (!Node.IsExpanded)
         {
+            <div class="card-header">
+                <div class=" float-end">
+                    @if (Node.IsContainer)
+                    {
+                        <a href="" class="card-link" @onclick="@open" @onclick:preventDefault>
+                            <span class="oi oi-fullscreen-enter" @onclick="@open" aria-hidden="true"></span>
+                        </a>
+                    }
+                    else
+                    {
+                        <a href="" class="card-link" @onclick="@expand" @onclick:preventDefault>
+                            <span class="oi oi-pencil" aria-hidden="true"></span>
+                        </a>
+                    }
+                    <a href="" class="card-link link-danger" @onclick="@delete" @onclick:preventDefault>
+                        <span class="oi oi-circle-x" aria-hidden="true"></span>
+                    </a>
+                </div>
+            </div>
             <div class="card-body">
                 <h5 class="card-title">@Node.Text</h5>
-                @if (Node.IsContainer)
-                {
+
+                @* @if (Node.IsContainer)
+                    {
                     <a href="" class="card-link" @onclick="@open" @onclick:preventDefault>Open</a>
-                }
-                else
-                {
+                    }
+                    else
+                    {
                     <a href="" class="card-link" @onclick="@expand" @onclick:preventDefault>Edit</a>
-                }
-                <a href="" class="card-link card-delete" @onclick="@delete" @onclick:preventDefault>Delete</a>
-            </div>
+                    } *@
+                <!--                <a href="" class="card-link card-delete" @onclick="@delete" @onclick:preventDefault>Delete</a>-->
+        </div>
         }
         else
         {
+            <div class="card-header">
+                <div class=" float-end">
+                    <a href="" class="card-link" @onclick="@collapce" @onclick:preventDefault>
+                        <span class="oi oi-circle-check" aria-hidden="true"></span>
+                    </a>
+                </div>
+            </div>
             <div class="card-body">
                 <form>
                     <div class="mb-3">
@@ -29,8 +56,8 @@
                     </div>
                     @Edit
                 </form>
-                <a href="" class="card-link" @onclick="@collapce" @onclick:preventDefault>Close</a>
-            </div>
+                <!--                <a href="" class="card-link" @onclick="@collapce" @onclick:preventDefault>Close</a>-->
+        </div>
         }
 
         @foreach (var port in Node.Ports)
