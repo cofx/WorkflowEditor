@@ -43,6 +43,26 @@ public class SequenceNode : DefaultNode
 
             last = result;
         }
+
+        //Calc position
+        //if(this.HasViewState == false)
+       
+        {
+            var horizontal = this.service.DiagramContainer!.Center.X;
+            var minHeight = (int) this.service.Items.Min(p=> p.Node.Size!.Height);
+            int y = minHeight;
+            int distance = minHeight;
+            foreach (var activity in this.sequenceActivity.Activities)
+            {
+                var node = this.service.GetPair(activity).Node;
+                var size = node.Size!;
+            
+                node.CenterPosition = new Diagrams.Core.Geometry.Point(horizontal, y);
+                y += ((int) size.Height)/2 + distance;
+            }
+        }
+
+
     }
 
     public override void AddChild(ActivityDesignerPair child)
@@ -58,7 +78,10 @@ public class SequenceNode : DefaultNode
             service.RemoveLinkFromTo(source, target);
 
             linkFromTo(source, child);
+            reconnect(source, child);
+
             linkFromTo(child, target);
+            reconnect(child, target);
 
             var index = this.sequenceActivity.Activities.IndexOf(target.Activity);
             this.sequenceActivity.Activities.Insert(index, child.Activity);

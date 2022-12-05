@@ -153,6 +153,8 @@ public class DefaultNode : NodeModel {
         return true;
     }
 
+    public bool HasViewState => viewState != null;
+
     public void UpdateViewState() {
         if (viewState == null)
             return;
