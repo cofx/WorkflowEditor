@@ -12,5 +12,16 @@ public class ViewState {
     public Point? Offcet { get; set; }
     public PortAlignment? IncomingPortAlign { get; set; }
     public PortAlignment? OutcomingPortAlign { get; set; }
+
+    public bool IsEmpty() {
+        return CenterPosition == null &&
+            Size == null &&
+            Comment == null &&
+            IsExpanded == null &&
+            Zoom == null &&
+            Offcet == null &&
+            IncomingPortAlign == null &&
+            OutcomingPortAlign == null;
+    }
 }
 

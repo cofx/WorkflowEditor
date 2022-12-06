@@ -28,7 +28,7 @@ namespace test {
                     Type = typeof(OutArgument<string>)
                 });
 
-            sourceActivity.AttachedProperies.Add(
+            sourceActivity.AttachedProperties.Add(
                  "state",
                  new State() { X = 1, Y = 2, IsExpanded = true }
              );
@@ -37,7 +37,7 @@ namespace test {
 
             var restoredActivity = XamlServices.Parse(xaml);
 
-            var properties = (restoredActivity as DynamicActivity)?.AttachedProperies;
+            var properties = (restoredActivity as DynamicActivity)?.AttachedProperties;
             if (properties != null) {
                 properties.TryGetValue("state", out var value);
                 if (value is State state && state != null) {

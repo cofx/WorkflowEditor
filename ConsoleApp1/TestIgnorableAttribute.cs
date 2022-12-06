@@ -1,4 +1,6 @@
+using System;
 using System.Activities.XamlIntegration;
+using System.IO;
 
 namespace test {
     partial class TestHelper {

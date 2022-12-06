@@ -106,9 +106,15 @@ public class DefaultNode : NodeModel {
                 attachedProperties.Add("ViewState", this.viewState);
             }
         }
-
         if (viewState == null)
             return false;
+
+        if (viewState.IsEmpty()) {
+            this.CenterPosition = new Diagrams.Core.Geometry.Point(
+                this.service.DiagramContainer!.Width / 2,
+                this.service.DiagramContainer!.Height / 2);
+            return true;
+        }
 
         if (viewState.CenterPosition != null && this.CenterPosition != viewState.CenterPosition)
             this.CenterPosition = viewState.CenterPosition;
@@ -153,7 +159,7 @@ public class DefaultNode : NodeModel {
         return true;
     }
 
-    public bool HasViewState => viewState != null;
+    public bool HasViewState => viewState != null && !viewState.IsEmpty();
 
     public void UpdateViewState() {
         if (viewState == null)
