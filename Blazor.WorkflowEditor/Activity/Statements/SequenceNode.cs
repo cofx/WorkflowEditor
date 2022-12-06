@@ -50,6 +50,8 @@ public class SequenceNode : DefaultNode {
 
                 node.CenterPosition = new Diagrams.Core.Geometry.Point(horizontal, y);
                 y += ((int)size.Height) / 2 + distance;
+
+                node.UpdateViewState();
             }
         }
 

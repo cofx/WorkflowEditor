@@ -15,7 +15,12 @@
 
         public bool IsArgument {
             get {
-                return this.Type.BaseType == typeof(System.Activities.Argument);
+                var tArg = typeof(System.Activities.Argument);
+                if (this.Type == tArg ||
+                    this.Type.BaseType == tArg ||
+                    this.Type.BaseType?.BaseType == tArg)
+                    return true;
+                return false;
             }
         }
     }
