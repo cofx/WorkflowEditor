@@ -25,6 +25,8 @@ namespace Blazor.WorkflowEditor {
         public ObservableCollection<PathItem> Path = new();
         public ObservableCollection<Variable> Variables { get; set; } = new();
 
+        public Diagrams.Core.Geometry.Rectangle? DiagramContainer => this.designer.Container;
+
         public event Action? SelectedOnMove;
 
         public Service(Diagram designer, Action updateState) {

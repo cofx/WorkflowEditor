@@ -4,35 +4,29 @@ using Blazor.Diagrams.Core.Models;
 
 namespace Blazor.WorkflowEditor.Activity.Statements;
 
-public class SequenceNode : DefaultNode
-{
+public class SequenceNode : DefaultNode {
     private readonly Sequence sequenceActivity;
 
-    public SequenceNode(Service service, System.Activities.Statements.Sequence sequenceActivity) : base(service, sequenceActivity)
-    {
+    public SequenceNode(Service service, System.Activities.Statements.Sequence sequenceActivity) : base(service, sequenceActivity) {
         this.sequenceActivity = sequenceActivity;
         this.IsContainer = true;
 
         this.service.SelectedOnMove += onMove;
     }
 
-    public override Collection<System.Activities.Variable> GetVariables()
-    {
+    public override Collection<System.Activities.Variable> GetVariables() {
         return new Collection<System.Activities.Variable>(sequenceActivity.Variables);
     }
 
-    void linkFromTo(ActivityDesignerPair from, ActivityDesignerPair to)
-    {
+    void linkFromTo(ActivityDesignerPair from, ActivityDesignerPair to) {
         var link = service.LinkFromTo(from, to);
         //link.Router = Diagrams.Core.Routers.Orthogonal;
         //link.PathGenerator = Diagrams.Core.PathGenerators.Straight;
     }
 
-    public override void LoadChilds(Func<System.Activities.Activity, ActivityDesignerPair> addActivity)
-    {
+    public override void LoadChilds(Func<System.Activities.Activity, ActivityDesignerPair> addActivity) {
         ActivityDesignerPair? last = default;
-        foreach (var activity in this.sequenceActivity.Activities)
-        {
+        foreach (var activity in this.sequenceActivity.Activities) {
             var result = addActivity(activity);
 
             //lock ports for manual connect 
@@ -43,22 +37,40 @@ public class SequenceNode : DefaultNode
 
             last = result;
         }
+
+        //Calc position
+        if (this.HasViewState == false) {
+            var horizontal = this.service.DiagramContainer!.Width / 2;
+            var minHeight = (int)this.service.Items.Min(p => p.Node.Size!.Height);
+            int y = minHeight;
+            int distance = minHeight;
+            foreach (var activity in this.sequenceActivity.Activities) {
+                var node = this.service.GetPair(activity).Node;
+                var size = node.Size!;
+
+                node.CenterPosition = new Diagrams.Core.Geometry.Point(horizontal, y);
+                y += ((int)size.Height) / 2 + distance;
+            }
+        }
+
+
     }
 
-    public override void AddChild(ActivityDesignerPair child)
-    {
+    public override void AddChild(ActivityDesignerPair child) {
         //lock ports for manual connect 
         child.Node.Ports.ToList().ForEach(p => p.Locked = true);
 
-        if (service.SelectedLinks.Count() == 1)
-        {
+        if (service.SelectedLinks.Count() == 1) {
             var source = service.SelectedLinks.First().source;
             var target = service.SelectedLinks.First().target;
 
             service.RemoveLinkFromTo(source, target);
 
             linkFromTo(source, child);
+            reconnect(source, child);
+
             linkFromTo(child, target);
+            reconnect(child, target);
 
             var index = this.sequenceActivity.Activities.IndexOf(target.Activity);
             this.sequenceActivity.Activities.Insert(index, child.Activity);
@@ -66,8 +78,7 @@ public class SequenceNode : DefaultNode
             return;
         }
 
-        if (service.Items.Count() > 2)
-        {
+        if (service.Items.Count() > 2) {
             var last = service.Items.SkipLast(1).Last();
             linkFromTo(last, child);
         }
@@ -75,11 +86,9 @@ public class SequenceNode : DefaultNode
         this.sequenceActivity.Activities.Add(child.Activity);
     }
 
-    public override void RemoveChild(System.Activities.Activity child)
-    {
+    public override void RemoveChild(System.Activities.Activity child) {
         var index = sequenceActivity.Activities.IndexOf(child);
-        if (index >= 0 && index < sequenceActivity.Activities.Count - 1)
-        {
+        if (index >= 0 && index < sequenceActivity.Activities.Count - 1) {
             var prevActivity = sequenceActivity.Activities[index - 1];
             var nextActivity = sequenceActivity.Activities[index + 1];
             service.LinkFromTo(service.GetPair(prevActivity), service.GetPair(nextActivity));
@@ -89,25 +98,21 @@ public class SequenceNode : DefaultNode
         sequenceActivity.Activities.Remove(child);
     }
 
-    private void onMove()
-    {
+    private void onMove() {
         if (sequenceActivity.Activities.Count() < 2)
             return;
 
-        foreach (var pair in service.SelectedItems)
-        {
+        foreach (var pair in service.SelectedItems) {
 
             var index = sequenceActivity.Activities.IndexOf(pair.Activity);
 
-            if (index >= 0 && index < sequenceActivity.Activities.Count - 1)
-            {
+            if (index >= 0 && index < sequenceActivity.Activities.Count - 1) {
                 var source = pair;
                 var dest = service.GetPair(sequenceActivity.Activities[index + 1]);
                 reconnect(source, dest);
             }
 
-            if (index >= 1 && index < sequenceActivity.Activities.Count)
-            {
+            if (index >= 1 && index < sequenceActivity.Activities.Count) {
                 var source = service.GetPair(sequenceActivity.Activities[index - 1]);
                 var dest = pair;
                 reconnect(source, dest);
@@ -116,8 +121,7 @@ public class SequenceNode : DefaultNode
         }
     }
 
-    private void reconnect(ActivityDesignerPair source, ActivityDesignerPair dest)
-    {
+    private void reconnect(ActivityDesignerPair source, ActivityDesignerPair dest) {
         var avalableSourcePorts = source.Node.Ports.ToList();
         if (source.Node.IncomingPort?.Links.Count > 0)
             avalableSourcePorts.Remove(source.Node.IncomingPort);
