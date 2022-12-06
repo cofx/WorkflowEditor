@@ -254,7 +254,7 @@ namespace Blazor.WorkflowEditor {
 
                     foreach (var _var in node.GetVariables()) {
                         Variable variable = new() {
-                            Activity = activity,
+                            Activity = newItem.Reference!.Activity,
                             Name = _var.Name,
                             Type = _var.Type,
                             DefaultValue = _var.Default
