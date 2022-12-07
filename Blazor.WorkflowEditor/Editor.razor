@@ -21,7 +21,8 @@
                         <ul class="items list-unstyled @(HasGroupCollapsed(group.Name))">
                             @foreach (var item in group.Items)
                             {
-                                <li @key="item" class="@((item.Image==null?"activityItemWithoutIcon":"activityItem"))" draggable="true" @ondragstart="() => OnDragStart(item)">
+                                <li @key="item" class="@((item.Image==null?"activityItemWithoutIcon":"activityItem"))"
+                        draggable="true" @ondragstart="() => OnDragStart(item)">
                                     @if (item.Image != null)
                                     {
                                         <span class="@item.Image" aria-hidden="true"></span>
@@ -40,10 +41,10 @@
         <div class="diagram-path">
             <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
                 <ol class="breadcrumb">
-                @foreach (var pathItem in service.Path)
-                {
-                    <li class="breadcrumb-item"><a href="#" @onclick="()=>OpenPath(pathItem)">@pathItem.Name</a></li>
-                }
+                    @foreach (var pathItem in service.Path)
+                    {
+                        <li class="breadcrumb-item"><a href="#" @onclick="()=>OpenPath(pathItem)">@pathItem.Name</a></li>
+                    }
                 </ol>
             </nav>
         </div>
@@ -56,59 +57,93 @@
                     </CascadingValue>
                 </CascadingValue>
             </div>
-        </div>        
-        
-        <div class="variables">
-            <table class="table-sm caption-top w-100">
-                <caption class="clear-fix">
-                    Variables
-                    <div class="float-end">
-                        <div>
-                            <button type="button" class="btn">
-                                <span class="oi oi-plus text-primary" aria-hidden="true"></span>
-                            </button>
-                            <button type="button" class="btn" @onclick="()=>variabledCollapsed=!variabledCollapsed">
-                                <span class="oi @VariablesCollapsedIcon() text-primary" aria-hidden="true"></span>
-                            </button>
-                        </div>
-                    </div>
-                </caption>
-                <thead class="@HasVariablesCollapsed()">
-                    <tr>
-                        <th scope="col">Name</th>
-                        <th scope="col">Type</th>
-                        <th scope="col">Default value</th>
-                        <th scope="col"></th>
-                    </tr>
-                </thead>
-                <tbody class="@HasVariablesCollapsed()">
-        @foreach (var variable in service.Variables)
-        {
-                        <tr>
-                            <td>@variable.Name</td>
-                            <td>@variable.Type</td>
-                            <td>@variable.DefaultValue</td>
-                            <td>
-                                <div class="float-end">
-                                    <button type="button" class="btn">
-                                        <span class="oi oi-pencil text-primary" aria-hidden="true"></span>
-                                    </button>
-                                    <button type="button" class="btn">
-                                        <span class="oi oi-x text-danger" aria-hidden="true"></span>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-        }
-                </tbody>
-            </table>
         </div>
 
+        <div class="variables">
+            <div class="variables-table">
+                <table class="table-sm caption-top w-100">
+                    <caption class="clear-fix">
+                        Variables
+                        <div class="float-end">
+                            <div>
+                                <button type="button" class="btn">
+                                    <span class="oi oi-plus text-primary" aria-hidden="true"></span>
+                                </button>
+                                <button type="button" class="btn" @onclick="()=>variabledCollapsed=!variabledCollapsed">
+                                    <span class="oi @VariablesCollapsedIcon() text-primary" aria-hidden="true"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </caption>
+                    <tbody class="@HasVariablesCollapsed()">
+                        @foreach (var item in GetGroupedVariables)
+                        {
+                            <tr>
+
+                                <td>
+                                    <table class="table-sm caption-top w-100">
+                                        <caption class="clear-fix">
+                                            <div>
+                                                <span
+                                                class="oi text-primary @(hasVariablesGroupCollapsed(item.Activity?.DisplayName)?"oi-arrow-top":"oi-arrow-bottom")"
+                                                style="vertical-align: text-top; cursor: pointer;" aria-hidden="true"
+                                                @onclick="()=>variablesGroupCollapse(item.Activity?.DisplayName)">
+                                                </span>
+                                                @(item.Activity?.DisplayName??"...")
+                                            </div>
+                                        </caption>
+                                        <thead
+                                        class="@(hasVariablesGroupCollapsed(item.Activity?.DisplayName??"...")?"collapse":"")">
+                                            <tr>
+                                                <th scope="col"></th>
+                                                <th scope="col">Name</th>
+                                                <th scope="col">Type</th>
+                                                <th scope="col">Default value</th>
+                                                <th scope="col"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody
+                                        class="@(hasVariablesGroupCollapsed(item.Activity?.DisplayName??"...")?"collapse":"")">
+                                            @foreach (var variable in item.Variables)
+                                            {
+                                                <tr>
+                                                    <td style="width: 20px;"></td>
+                                                    <td>@variable.Name</td>
+                                                    <td>@variable.Type</td>
+                                                    <td>@variable.DefaultValue</td>
+                                                    <td>
+                                                        <div class="float-end">
+                                                            <button type="button" class="btn">
+                                                                <span class="oi oi-pencil text-primary"
+                                                            aria-hidden="true"></span>
+                                                            </button>
+                                                            <button type="button" class="btn">
+                                                                <span class="oi oi-x text-danger" aria-hidden="true"></span>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
 </div>
 
 @code {
+    class VariableGroupModel
+    {
+        public System.Activities.Activity? Activity { get; set; }
+        public List<Variable> Variables { get; set; } = new List<Variable>();
+    }
+
     private Diagram designer { get; set; } = default!;
     private ToolBoxItem? draggedToolboxItem;
     private Blazor.WorkflowEditor.Service service { get; set; } = default!;
@@ -120,6 +155,35 @@
     private bool toolboxCollapsed = false;
     private int toolboxWidth = 36;
     private string toolboxStyle = "";
+
+    private Dictionary<string, bool> variablesGroupCollapsed { get; set; } = new Dictionary<string, bool>();
+
+    private List<VariableGroupModel> GetGroupedVariables
+    {
+        get
+        {
+            List<VariableGroupModel> result = new List<VariableGroupModel>();
+            foreach (var item in service.Variables)
+            {
+                var gm = result.FirstOrDefault(p => p.Activity == item.Activity);
+                if (gm == null)
+                {
+                    if (!variablesGroupCollapsed.ContainsKey(item.Activity.DisplayName))
+                    {
+                        variablesGroupCollapsed.Add(item.Activity.DisplayName, false);
+                    }
+                    gm = new VariableGroupModel
+                    {
+                        Activity = item.Activity,
+                        Variables = new List<Variable>(),
+                    };
+                    result.Add(gm);
+                }
+                gm.Variables.Add(item);
+            };
+            return result;
+        }
+    }
 
     protected override void OnInitialized()
     {
@@ -243,5 +307,20 @@
     private string ToolboxCollapsedIcon()
     {
         return toolboxCollapsed ? "oi oi-arrow-right" : "oi oi-arrow-left";
+    }
+
+    private bool hasVariablesGroupCollapsed(string? key)
+    {
+        key = key ?? "...";
+        return variablesGroupCollapsed.ContainsKey(key) ? variablesGroupCollapsed[key] : false;
+    }
+
+    private void variablesGroupCollapse(string? key)
+    {
+        key = key ?? "...";
+        if (variablesGroupCollapsed.ContainsKey(key))
+        {
+            variablesGroupCollapsed[key] = variablesGroupCollapsed[key] ? false : true;
+        }
     }
 }
