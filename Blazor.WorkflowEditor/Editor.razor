@@ -4,9 +4,25 @@
 
     <div class="toolbox" style="@toolboxStyle">
         <div class="caption">
-            <button type="button" class="btn" @onclick="()=>ToolboxCollapse()">
-                <span class="oi @ToolboxCollapsedIcon() text-primary" aria-hidden="true"></span>
-            </button>
+            <div class="row">
+                <div class="col-1">
+                    <button type="button" class="btn" @onclick="()=>ToolboxCollapse()">
+                        <span class="oi @ToolboxCollapsedIcon() text-primary" aria-hidden="true"></span>
+                    </button>
+                </div>
+                @if (!toolboxCollapsed)
+                {
+
+                    <div class="col-11">
+                        <div class="input-group">
+                            <input type="text" class="form-control">
+                            <button type="button" class="btn">
+                                <span class="oi oi-x text-primary" style="align-self: center;"></span>
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
         </div>
         @if (!toolboxCollapsed)
         {
