@@ -15,8 +15,8 @@
 
                     <div class="col-11">
                         <div class="input-group">
-                            <input type="text" class="form-control">
-                            <button type="button" class="btn">
+                            <input type="text" class="form-control" @bind="toolboxFilter">
+                            <button type="button" class="btn" @onclick="()=>toolboxFilter=string.Empty">
                                 <span class="oi oi-x text-primary" style="align-self: center;"></span>
                             </button>
                         </div>
@@ -27,7 +27,7 @@
         @if (!toolboxCollapsed)
         {
             <ul class="groups list-unstyled">
-                @foreach (var group in this.ToolBoxGroups)
+                @foreach (var group in FilterdToolBoxGroups)
                 {
                     <li class="groupItem">
                         <div class="groupName" @onclick="()=>CollapseGroup(group.Name)">
@@ -171,6 +171,34 @@
     private bool toolboxCollapsed = false;
     private int toolboxWidth = 36;
     private string toolboxStyle = "";
+
+    private IEnumerable<ToolBoxGroup> FilterdToolBoxGroups
+    {
+        get
+        {
+            if (!string.IsNullOrWhiteSpace(toolboxFilter))
+            {
+                var result = new List<ToolBoxGroup>();
+                foreach (var group in ToolBoxGroups)
+                {
+                    var items = group.Items.Where(s => s.Name.ToLower().Contains(toolboxFilter.ToLower())).ToList();
+                    if (items.Count > 0)
+                    {
+                        result.Add(new ToolBoxGroup
+                        {
+                            Description = group.Description,
+                            Name = group.Name,
+                            Items = items
+                        });
+                    }
+                }
+                return result;
+            }
+            return ToolBoxGroups;
+        }
+    }
+    private string toolboxFilter { get; set; } = string.Empty;
+
 
     private Dictionary<string, bool> variablesGroupCollapsed { get; set; } = new Dictionary<string, bool>();
 
