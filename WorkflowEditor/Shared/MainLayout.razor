@@ -1,6 +1,8 @@
 ﻿@using System.Activities
+@using System.Text
 @inherits LayoutComponentBase
 @inject IJSRuntime JS
+
 
 <PageTitle>Workflow editor</PageTitle>
 
@@ -14,13 +16,13 @@
         <div class="collapse navbar-collapse" id="navbarNavDropdown">
             <ul class="navbar-nav">
                 <li class="nav-item">
-                    <a class="nav-link" href="#">New</a>
+                    <a class="nav-link" href="#" @onclick="New">New</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Load</a>
+                    <a class="nav-link" href="#" @onclick="Load">Load</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Save</a>
+                    <a class="nav-link" href="#" @onclick="Save">Save</a>
                 </li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownTest" role="button"
@@ -81,6 +83,28 @@
     {
         // if (firstRender)
         // editor.RegisterModelComponent();
+
+    }
+
+
+    private void New()
+    {
+
+    }
+
+    private async void Save()
+    {
+        if (editor != null)
+        {
+            var source = editor.Save();
+            Console.WriteLine(source);
+            using var streamRef = new DotNetStreamReference(stream: new MemoryStream(Encoding.UTF8.GetBytes(source)));
+            await JS.InvokeVoidAsync("downloadFileFromStream", "test.xaml", streamRef);
+        }
+    }
+
+    private void Load()
+    {
 
     }
 
