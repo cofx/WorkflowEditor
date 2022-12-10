@@ -1,16 +1,12 @@
-﻿.editor{
+﻿.editor {
     display: flex;
-    height: 95vh;
+    height: 100%;
+    background-color: antiquewhite;
 }
 
-.editor .toolbox{
+.editor .toolbox {
     flex: none;
     width: 400px;
-}
-
-.editor .toolbox .caption {
-/*    display: flex;*/
-/*    justify-content: flex-end;*/
 }
 
 .editor .groupItem {
@@ -32,36 +28,37 @@
     padding-left: 30px;
 }
 
-.editor .diagram-editor{
-    flex:2;
+.editor .diagram-editor {
+    flex: 2;
     display: flex;
-    flex-direction: column;    
+    flex-direction: column;
     height: 100%;
 }
 
-.editor .diagram-editor .diagram-path{
+.editor .diagram-editor .diagram-path {
     flex: none;
-    height: 24px;    
+    height: 24px;
 }
 
 .editor .diagram-editor .diagram-main {
     flex: auto;
 }
 
-.editor .diagram-editor .diagram-main .diagram{
+.editor .diagram-editor .diagram-main .diagram {
     height: 100%;
 }
 
-.editor .diagram-editor .variables{
-    flex:none;
+.editor .diagram-editor .variables {
+    flex: none;
 }
 
-.editor .diagram-editor .variables .variables-table{
+.editor .diagram-editor .variables .variables-table {
     max-height: 500px;
     overflow: auto;
 }
 
-.btn:focus,.btn:active {
+.btn:focus,
+.btn:active {
     outline: none !important;
     box-shadow: none;
- }
+}
