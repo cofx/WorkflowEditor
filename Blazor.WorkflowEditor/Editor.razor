@@ -1,6 +1,8 @@
-﻿@implements IDisposable
+﻿@using Blazor.WorkflowEditor.Components
+@implements IDisposable
 
 <div class="editor">
+    <GenericTypeSelectModal @ref="genericTypeSelectModal" Types="TypeCollection"></GenericTypeSelectModal>
 
     <div class="toolbox" style="@toolboxStyle">
         <div class="caption">
@@ -154,6 +156,8 @@
 </div>
 
 @code {
+    private GenericTypeSelectModal? genericTypeSelectModal = new GenericTypeSelectModal();
+
     class VariableGroupModel
     {
         public System.Activities.Activity? Activity { get; set; }
@@ -166,6 +170,10 @@
 
     [Parameter, EditorRequired]
     public IEnumerable<ToolBoxGroup> ToolBoxGroups { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public List<Type> TypeCollection { get; set; } = default!;
+
     private IDictionary<string, bool> collapsedGroups = new Dictionary<string, bool>();
     private bool variabledCollapsed = false;
     private bool toolboxCollapsed = false;
@@ -267,18 +275,34 @@
         draggedToolboxItem = key;
     }
 
-    private void OnDrop(DragEventArgs e)
+    private async void OnDrop(DragEventArgs e)
     {
         if (draggedToolboxItem == null)
             return;
-
-        (bool hasAdded, var result) = service.AddActivity(draggedToolboxItem.TypeOfActivity);
-        if (hasAdded)
+        if (draggedToolboxItem.TypeOfActivity.IsGenericType)
         {
+            if (genericTypeSelectModal == null) return;
+
+            genericTypeSelectModal.GenericTypes = draggedToolboxItem.TypeOfActivity.GetGenericArguments().Where(t =>
+            t.IsGenericParameter).Select(s => new GenericTypeSelectModal.GenericTypeDescription { Key = s.ToString() }).ToList();
+            var modalResult = await genericTypeSelectModal.Show();
+            if (modalResult != ModalResult.Applied) return;
+
+
+            (bool hasAdded, var result) =
+            service.AddActivity(draggedToolboxItem.TypeOfActivity, genericTypeSelectModal.GenericTypes.Select(s =>
+            s.Value).ToArray());
+            if (!hasAdded) return;
             var position = designer.GetRelativeMousePoint(e.ClientX, e.ClientY);
             result.Node.CenterPosition = position;
         }
-
+        else
+        {
+            (bool hasAdded, var result) = service.AddActivity(draggedToolboxItem.TypeOfActivity);
+            if (!hasAdded) return;
+            var position = designer.GetRelativeMousePoint(e.ClientX, e.ClientY);
+            result.Node.CenterPosition = position;
+        }
         draggedToolboxItem = null;
     }
 

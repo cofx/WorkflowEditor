@@ -2,6 +2,7 @@
 
 namespace Blazor.WorkflowEditor.Activity;
 
+[Pair(typeof(System.Activities.DynamicActivity), typeof(DefaultControl))]
 public class DynamicActivityNode : DefaultNode {
 
     private readonly DynamicActivity dynamicActivity;

@@ -1,0 +1,21 @@
+<h5 class="modal-title">@TitleText</h5>
+@if (CloseButtonVisible == true)
+{
+  <button type="button" class="@CloseButtonClass" @onclick="ModalCancel"></button>
+}
+
+@code {
+  [Parameter]
+  public string? TitleText { get; set; } = string.Empty;
+  [Parameter]
+  public string? CloseButtonClass { get; set; } = "btn-close";
+  [Parameter]
+  public bool? CloseButtonVisible { get; set; } = true;
+  [Parameter]
+  public EventCallback OnClose { get; set; }
+
+  private Task ModalCancel()
+  {
+    return OnClose.InvokeAsync();
+  }
+}

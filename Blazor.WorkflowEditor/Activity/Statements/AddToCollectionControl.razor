@@ -1,0 +1,18 @@
+﻿@using Blazor.WorkflowEditor.Components;
+@typeparam T
+
+<ActivityControl Node="@Node">
+    <Edit>
+        <div class="mb-3">
+            <label for="destination" class="form-label">Destination</label>
+        </div>
+        <div class="mb-3">
+            <label for="destination" class="form-label">Destination</label>
+        </div>
+    </Edit>
+</ActivityControl>
+
+@code {
+    [Parameter]
+    public AddToCollectionNode<T> Node { get; set; } = default!;
+}

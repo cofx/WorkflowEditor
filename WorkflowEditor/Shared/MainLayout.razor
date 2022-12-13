@@ -50,12 +50,13 @@
     </div>
 </nav>
 
-<Blazor.WorkflowEditor.Editor @ref="editor" ToolBoxGroups="groups" />
+<Blazor.WorkflowEditor.Editor @ref="editor" ToolBoxGroups="groups" TypeCollection="TypeCollection" />
 
 
 @code {
     private Blazor.WorkflowEditor.Editor? editor = default!;
     private List<Blazor.WorkflowEditor.ToolBoxGroup> groups { get; set; } = new()!;
+    private List<Type> TypeCollection { get; set; } = new()!;
 
 
     private async void changeTheme(string theme)
@@ -75,8 +76,13 @@
         var testGroup = new Blazor.WorkflowEditor.ToolBoxGroup() { Name = "Test" };
         testGroup.Add<System.Activities.Statements.Assign>();
         testGroup.Add<System.Activities.Statements.Assign>();
+        testGroup.Add(typeof(System.Activities.Statements.AddToCollection<>), "oi oi-pencil");
         groups.Add(testGroup);
 
+        TypeCollection.Add(Type.GetType("System.Object"));
+        TypeCollection.Add(Type.GetType("System.Int32"));
+        TypeCollection.Add(Type.GetType("System.String"));
+        TypeCollection.Add(Type.GetType("System.Boolean"));
     }
 
     protected override void OnAfterRender(bool firstRender)

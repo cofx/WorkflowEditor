@@ -1,5 +1,6 @@
 ﻿using System.Activities;
 using System.Collections.ObjectModel;
+using System.Reflection;
 using Blazor.Diagrams.Core;
 using Blazor.Diagrams.Core.Models;
 using Blazor.Diagrams.Core.Models.Base;
@@ -12,8 +13,6 @@ namespace Blazor.WorkflowEditor {
         private System.Activities.Activity activity = default!;
         private Diagram designer = default!;
         private Action updateState = default!;
-        private List<TypeActivityDesignerPair> typeActivityDesignerPairs = new();
-
         private List<ActivityDesignerPair> items = new();
         private List<ActivityDesignerPair> selectedItems = new();
         private List<(ActivityDesignerPair, ActivityDesignerPair)> selectedLinks = new();
@@ -30,25 +29,6 @@ namespace Blazor.WorkflowEditor {
         public event Action? SelectedOnMove;
 
         public Service(Diagram designer, Action updateState) {
-            //register links activity to node to designer
-            //TODO: Replace to attribute
-            addTypeActivityDesignerPair(
-                typeof(System.Activities.DynamicActivity),
-                typeof(Activity.DynamicActivityNode),
-                typeof(Activity.DefaultControl)
-            );
-            addTypeActivityDesignerPair(
-                typeof(System.Activities.Statements.Assign),
-                typeof(Activity.Statements.AssignNode),
-                typeof(Activity.Statements.AssignControl)
-            );
-            addTypeActivityDesignerPair(
-                typeof(System.Activities.Statements.Sequence),
-                typeof(Activity.Statements.SequenceNode),
-                typeof(Activity.Statements.SequenceControl)
-            );
-
-
             this.designer = designer;
 
             this.designer.SelectionChanged += selectionChanged;
@@ -60,21 +40,7 @@ namespace Blazor.WorkflowEditor {
             this.Path.CollectionChanged += pathChanged;
 
             this.updateState = updateState;
-
-            registerModelComponent();
-
         }
-
-        void addTypeActivityDesignerPair(Type activity, Type node, Type designer) {
-            typeActivityDesignerPairs.Add(new TypeActivityDesignerPair() { Activity = activity, Node = node, Designer = designer });
-        }
-
-        void registerModelComponent() {
-            designer.RegisterModelComponent<Activity.DefaultNode, Activity.DefaultControl>();
-            foreach (var item in typeActivityDesignerPairs)
-                designer.RegisterModelComponent(item.Node, item.Designer);
-        }
-
 
         public void Dispose() {
             this.designer.SelectionChanged -= selectionChanged;
@@ -104,8 +70,14 @@ namespace Blazor.WorkflowEditor {
         /// <summary>
         /// Add by activity type
         /// </summary>
-        public (bool hasAdded, ActivityDesignerPair result) AddActivity(Type activityType) {
-            var activityObject = Activator.CreateInstance(activityType);
+        public (bool hasAdded, ActivityDesignerPair result) AddActivity(Type activityType, params Type[] types) {
+            object? activityObject;
+            if (types != null && types.Count() > 0) {
+                activityObject = Activator.CreateInstance(activityType.MakeGenericType(types));
+            } else {
+                activityObject = Activator.CreateInstance(activityType);
+            }
+
             if (activityObject == null)
                 return (false, default!);
 
@@ -297,20 +269,39 @@ namespace Blazor.WorkflowEditor {
             if (this.activity == null)
                 this.activity = activity!;
 
-            var typePair = typeActivityDesignerPairs.FirstOrDefault(p => p.Activity == activity.GetType());
-            var nodeType = typePair?.Node ?? typeof(Activity.DefaultNode);
-
-            var node = (Activator.CreateInstance(nodeType, this, activity) as Activity.DefaultNode)!;
-            designer.Nodes.Add(node);
-            node.RestoreViewState();
-
-            //add to linked list
-            ActivityDesignerPair result = new() { Activity = activity!, Node = node };
-            items.Add(result);
-
-            return result;
+            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            foreach (var assembly in assemblies) {
+                foreach (Type type in assembly.GetTypes()) {
+                    DefaultNode? node = null;
+                    if (type.GetCustomAttributes(typeof(PairAttribute), true).Length > 0) {
+                        var attr = type.GetCustomAttributes(typeof(PairAttribute), true).FirstOrDefault();
+                        if (attr == null) continue;
+                        var activityType = activity.GetType();
+                        if (activityType.IsGenericType) {
+                            if (activityType.GetGenericTypeDefinition() != ((PairAttribute)attr).Activity) continue;
+                            var genericTypes = activityType.GenericTypeArguments;
+                            node = (Activator.CreateInstance(type.MakeGenericType(genericTypes), this, activity) as Activity.DefaultNode)!;
+                            if (designer.GetComponentForModel(node) == null) {
+                                designer.RegisterModelComponent(type.MakeGenericType(genericTypes), ((PairAttribute)attr).Control.MakeGenericType(genericTypes));
+                            }
+                        } else {
+                            if (activityType != ((PairAttribute)attr).Activity) continue;
+                            node = (Activator.CreateInstance(type, this, activity) as Activity.DefaultNode)!;
+                            if (designer.GetComponentForModel(node) == null) {
+                                designer.RegisterModelComponent(type, ((PairAttribute)attr).Control);
+                            }
+                        }
+                        if (node == null) continue;
+                        designer.Nodes.Add(node);
+                        node.RestoreViewState();
+                        ActivityDesignerPair result = new() { Activity = activity!, Node = node };
+                        items.Add(result);
+                        return result;
+                    }
+                }
+            }
+            return null;
         }
-
     }
 
 }

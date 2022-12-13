@@ -7,10 +7,14 @@ public class ToolBoxGroup {
     public List<ToolBoxItem> Items { get; set; } = new();
 
     public void Add<T>(string? imageToolbox = null) where T : System.Activities.Activity {
+        Add(typeof(T), imageToolbox);
+    }
+
+    public void Add(Type type, string? imageToolbox = null) {
         var ti = new ToolBoxItem {
-            Name = typeof(T).Name,
+            Name = type.Name,
             Image = imageToolbox,
-            TypeOfActivity = typeof(T)
+            TypeOfActivity = type
         };
         Items.Add(ti);
     }

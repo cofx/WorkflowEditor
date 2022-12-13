@@ -1,0 +1,39 @@
+@if (CancelButtonVisible == true)
+{
+  <button type="button" class="@CancelButtonClass" @onclick="ModalCancel">@CancelButtonText</button>
+}
+@if (ApplyButtonVisible == true)
+{
+  <button type="button" class="@ApplyButtonClass" @onclick="ModalApply">@ApplyButtonText</button>
+}
+
+@code {
+  [Parameter]
+  public string? CancelButtonClass { get; set; } = "btn btn-secondary";
+  [Parameter]
+  public bool? CancelButtonVisible { get; set; } = true;
+  [Parameter]
+  public string? CancelButtonText { get; set; } = "Cancel";
+
+  [Parameter]
+  public string? ApplyButtonClass { get; set; } = "btn btn-primary";
+  [Parameter]
+  public bool? ApplyButtonVisible { get; set; } = true;
+  [Parameter]
+  public string? ApplyButtonText { get; set; } = "Apply";
+
+  [Parameter]
+  public EventCallback OnClose { get; set; }
+  [Parameter]
+  public EventCallback OnApply { get; set; }
+
+  private Task ModalCancel()
+  {
+    return OnClose.InvokeAsync();
+  }
+
+  private Task ModalApply()
+  {
+    return OnApply.InvokeAsync();
+  }
+}

@@ -13,6 +13,7 @@ public class DefaultNode : NodeModel {
     public string Text { get => activity.DisplayName; set => activity.DisplayName = value; }
     public string? Comment { get; set; }
     public bool IsContainer { get; init; } = false;
+    public bool IsGeneric { get; set; } = false;
     public bool IsExpanded { get; set; } = false;
     public double? Zoom { get; set; }
     public Point? Offcet { get; set; }

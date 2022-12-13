@@ -4,6 +4,7 @@ using Blazor.Diagrams.Core.Models;
 
 namespace Blazor.WorkflowEditor.Activity.Statements;
 
+[Pair(typeof(System.Activities.Statements.Sequence), typeof(SequenceControl))]
 public class SequenceNode : DefaultNode {
     private readonly Sequence sequenceActivity;
 

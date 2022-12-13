@@ -1,0 +1,22 @@
+@implements IDisposable
+
+<CascadingValue Value="this">
+  @if (IsShowed)
+        {
+          <div class="modal modal-dialog-centered" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+              <div class="modal-content">
+                <div class="modal-header">
+                  @Header
+                </div>
+                <div class="modal-body" style="width:800px;">
+                  @Body
+                </div>
+                <div class="modal-footer">
+                  @Footer
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </CascadingValue>

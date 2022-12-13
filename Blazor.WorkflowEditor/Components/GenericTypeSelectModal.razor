@@ -1,0 +1,36 @@
+@implements IDisposable
+
+<Modal @ref="Modal">
+  <Header>
+    <ModalHeader TitleText="Select generic type " OnClose="Modal!.Close"></ModalHeader>
+  </Header>
+
+  <Body>
+    @if (GenericTypes != null)
+    {
+      foreach (var item in GenericTypes)
+      {
+        <TypeSelectControl @key="item" Types="Types" Label="@($"Generic type <{item.Key}>")" @bind-Value="item.Value">
+        </TypeSelectControl>
+      }
+    }
+  </Body>
+
+  <Footer>
+    <ModalFooter OnClose="Modal!.Close" OnApply="Modal!.Apply"></ModalFooter>
+  </Footer>
+</Modal>
+@code {
+  public class GenericTypeDescription
+  {
+    public string Key { get; set; } = string.Empty;
+    public Type? Value { get; set; } = null;
+  }
+
+  [Parameter]
+  public List<Type>? Types { get; set; }
+
+  [Parameter]
+  public List<GenericTypeDescription>? GenericTypes { get; set; }
+
+}

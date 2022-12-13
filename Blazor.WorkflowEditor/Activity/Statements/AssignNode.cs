@@ -2,6 +2,7 @@
 
 namespace Blazor.WorkflowEditor.Activity.Statements;
 
+[Pair(typeof(System.Activities.Statements.Assign), typeof(AssignControl))]
 public class AssignNode : DefaultNode {
     private readonly Assign assignActivity;
 
