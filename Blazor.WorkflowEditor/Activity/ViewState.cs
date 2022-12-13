@@ -12,22 +12,16 @@ public enum PortAlignment {
 }
 
 public class ViewState {
-    public Dictionary<string, int>? Integers { get; set; }
 
     public int? cX { get; set; }
     public int? cY { get; set; }
     public int? W { get; set; }
     public int? H { get; set; }
-
     public int? oX { get; set; }
     public int? oY { get; set; }
-
-    //public Point? CenterPosition { get; set; }
-    //public Size? SizeValue { get; set; }
     public string? Comment { get; set; }
     public bool? IsExpanded { get; set; }
     public double? Zoom { get; set; }
-    //public Point? Offcet { get; set; }
     public PortAlignment? IncomingPortAlign { get; set; }
     public PortAlignment? OutcomingPortAlign { get; set; }
 

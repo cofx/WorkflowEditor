@@ -121,11 +121,6 @@ public class DefaultNode : NodeModel {
         if (viewState.cX.HasValue && viewState.cY.HasValue)
             this.CenterPosition = new Point((double)viewState.cX, (double)viewState.cY);
 
-        if (viewState.Integers != null) {
-            if (viewState.Integers.TryGetValue("cX", out int x) && viewState.Integers.TryGetValue("cY", out int y))
-                this.CenterPosition = new Point((double)x, (double)y);
-        }
-
         if (viewState.W.HasValue && viewState.H.HasValue)
             this.Size = new Size((double)viewState.W, (double)viewState.H);
 
@@ -168,23 +163,20 @@ public class DefaultNode : NodeModel {
 
     public bool HasViewState => viewState != null && !viewState.IsEmpty();
 
+
     public void UpdateViewState() {
+        bool sizeCompare(Blazor.Diagrams.Core.Geometry.Size sourse, Blazor.Diagrams.Core.Geometry.Size destination) =>
+            Math.Abs(sourse.Width - destination.Width) < 1 && Math.Abs(sourse.Height - destination.Height) < 1;
+
         //This is tempory code...
 
         if (viewState == null)
             return;
 
-
         this.viewState.cX = (int)this.CenterPosition.X;
         this.viewState.cY = (int)this.CenterPosition.Y;
 
-        if (this.viewState.Integers == null)
-            this.viewState.Integers = new();
-
-        this.viewState.Integers["cX"] = (int)this.CenterPosition.X;
-        this.viewState.Integers["cY"] = (int)this.CenterPosition.Y;
-
-        if (this.Size != null && this.Size != this.defaultSize) {
+        if (this.Size != null && sizeCompare(this.Size, this.defaultSize) == false) {
             this.viewState.W = (int)this.Size.Width;
             this.viewState.H = (int)this.Size.Height;
         } else {
