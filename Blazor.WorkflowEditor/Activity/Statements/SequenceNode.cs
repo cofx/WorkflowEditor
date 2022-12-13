@@ -25,6 +25,7 @@ public class SequenceNode : DefaultNode {
     }
 
     public override void LoadChilds(Func<System.Activities.Activity, ActivityDesignerPair> addActivity) {
+        bool childHasViewState = false;
         ActivityDesignerPair? last = default;
         foreach (var activity in this.sequenceActivity.Activities) {
             var result = addActivity(activity);
@@ -36,10 +37,12 @@ public class SequenceNode : DefaultNode {
                 linkFromTo(last, result);
 
             last = result;
+
+            childHasViewState |= result.Node.HasViewState;
         }
 
         //Calc position
-        if (this.HasViewState == false) {
+        if (childHasViewState == false) {
             var horizontal = this.service.DiagramContainer!.Width / 2;
             var minHeight = (int)this.service.Items.Min(p => p.Node.Size!.Height);
             int y = minHeight;

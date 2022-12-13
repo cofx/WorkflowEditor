@@ -58,7 +58,7 @@ public class DefaultNode : NodeModel {
     private PortModel bottomPort = default!;
 
     //for save/restore state
-    private ViewState? viewState;
+    private State.ViewState? viewState;
 
     public DefaultNode(Service service, System.Activities.Activity activity) : base() {
         this.service = service;
@@ -99,10 +99,10 @@ public class DefaultNode : NodeModel {
                 attachedProperties = new Dictionary<string, object>();
 
             attachedProperties.TryGetValue("ViewState", out var storedState);
-            if (storedState is ViewState defaultViewState && defaultViewState != null)
+            if (storedState is State.ViewState defaultViewState && defaultViewState != null)
                 this.viewState = defaultViewState;
             else {
-                this.viewState = new ViewState();
+                this.viewState = new State.ViewState();
                 attachedProperties.Add("ViewState", this.viewState);
             }
         }
@@ -116,30 +116,32 @@ public class DefaultNode : NodeModel {
             return true;
         }
 
-        if (viewState.CenterPosition != null && this.CenterPosition != viewState.CenterPosition)
-            this.CenterPosition = viewState.CenterPosition;
+        //This is tempory code...
 
-        if (viewState.Size != null && this.Size != viewState.Size)
-            this.Size = viewState.Size;
+        if (viewState.cX.HasValue && viewState.cY.HasValue)
+            this.CenterPosition = new Point((double)viewState.cX, (double)viewState.cY);
 
-        if (viewState.Comment != null && this.Comment != viewState.Comment)
+        if (viewState.W.HasValue && viewState.H.HasValue)
+            this.Size = new Size((double)viewState.W, (double)viewState.H);
+
+        if (viewState.Comment != null)
             this.Comment = viewState.Comment;
 
-        if (viewState.IsExpanded != null && this.IsExpanded != viewState.IsExpanded)
+        if (viewState.IsExpanded != null)
             this.IsExpanded = viewState.IsExpanded.Value;
 
-        if (viewState.Zoom != null && this.Zoom != viewState.Zoom)
+        if (viewState.Zoom != null)
             this.Zoom = viewState.Zoom;
 
-        if (viewState.Offcet != null && this.Offcet != viewState.Offcet)
-            this.Offcet = viewState.Offcet;
+        if (viewState.oX.HasValue && viewState.oY.HasValue)
+            this.Offcet = new Point((double)viewState.oX, (double)viewState.oY);
 
         if (viewState.IncomingPortAlign != null) {
             var _incomingPort = viewState.IncomingPortAlign switch {
-                PortAlignment.Top => topPort,
-                PortAlignment.Left => leftPort,
-                PortAlignment.Right => rightPort,
-                PortAlignment.Bottom => bottomPort,
+                State.PortAlignment.Top => topPort,
+                State.PortAlignment.Left => leftPort,
+                State.PortAlignment.Right => rightPort,
+                State.PortAlignment.Bottom => bottomPort,
                 _ => topPort
             };
             SetIncoming(_incomingPort);
@@ -147,10 +149,10 @@ public class DefaultNode : NodeModel {
 
         if (viewState.OutcomingPortAlign != null) {
             var _outcomingPort = viewState.OutcomingPortAlign switch {
-                PortAlignment.Top => topPort,
-                PortAlignment.Left => leftPort,
-                PortAlignment.Right => rightPort,
-                PortAlignment.Bottom => bottomPort,
+                State.PortAlignment.Top => topPort,
+                State.PortAlignment.Left => leftPort,
+                State.PortAlignment.Right => rightPort,
+                State.PortAlignment.Bottom => bottomPort,
                 _ => bottomPort
             };
             SetOutcoming(_outcomingPort);
@@ -161,20 +163,54 @@ public class DefaultNode : NodeModel {
 
     public bool HasViewState => viewState != null && !viewState.IsEmpty();
 
+
     public void UpdateViewState() {
+        bool sizeCompare(Blazor.Diagrams.Core.Geometry.Size sourse, Blazor.Diagrams.Core.Geometry.Size destination) =>
+            Math.Abs(sourse.Width - destination.Width) < 1 && Math.Abs(sourse.Height - destination.Height) < 1;
+
+        //This is tempory code...
+
         if (viewState == null)
             return;
 
-        this.viewState.CenterPosition = this.CenterPosition;
-        this.viewState.Size = this.Size != this.defaultSize ? this.Size : null;
+        this.viewState.cX = (int)this.CenterPosition.X;
+        this.viewState.cY = (int)this.CenterPosition.Y;
+
+        if (this.Size != null && sizeCompare(this.Size, this.defaultSize) == false) {
+            this.viewState.W = (int)this.Size.Width;
+            this.viewState.H = (int)this.Size.Height;
+        } else {
+            this.viewState.W = null;
+            this.viewState.H = null;
+        }
+
         this.viewState.Comment = this.Comment;
         this.viewState.IsExpanded = this.IsExpanded ? true : null;
 
-        this.viewState.IncomingPortAlign = this.IncomingPort.Alignment;
-        this.viewState.OutcomingPortAlign = this.OutcomingPort.Alignment;
+        this.viewState.IncomingPortAlign = this.IncomingPort.Alignment switch {
+            PortAlignment.Top => State.PortAlignment.Top,
+            PortAlignment.Left => State.PortAlignment.Left,
+            PortAlignment.Right => State.PortAlignment.Right,
+            PortAlignment.Bottom => State.PortAlignment.Bottom,
+            _ => State.PortAlignment.Top
+        };
+        this.viewState.OutcomingPortAlign = this.OutcomingPort.Alignment switch {
+            PortAlignment.Top => State.PortAlignment.Top,
+            PortAlignment.Left => State.PortAlignment.Left,
+            PortAlignment.Right => State.PortAlignment.Right,
+            PortAlignment.Bottom => State.PortAlignment.Bottom,
+            _ => State.PortAlignment.Top
+        };
 
         this.viewState.Zoom = Zoom;
-        this.viewState.Offcet = Offcet;
+
+        if (this.Offcet != null) {
+            this.viewState.oX = (int)this.Offcet.X;
+            this.viewState.oY = (int)this.Offcet.Y;
+        } else {
+            this.viewState.oX = null;
+            this.viewState.oY = null;
+        }
     }
 
 
