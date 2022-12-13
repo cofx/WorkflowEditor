@@ -7,7 +7,8 @@ namespace Blazor.WorkflowEditor.Activity;
 public class DefaultNode : NodeModel {
     private Size defaultSize = new Size(250, 114);
 
-    internal readonly Service service;
+    //    internal readonly Service service;
+    public readonly Service service;
     private readonly System.Activities.Activity activity;
 
     public string Text { get => activity.DisplayName; set => activity.DisplayName = value; }

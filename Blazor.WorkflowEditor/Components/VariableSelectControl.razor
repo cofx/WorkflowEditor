@@ -1,0 +1,53 @@
+@using System.Linq.Expressions
+@implements IDisposable
+
+<SelectComponent T=Variable Label="@Label" @bind-SelectedValue="BoundValue" SelectCollection="VariableCollection"
+  FilteringCollection="FilteringCollection" ConvertValueToString="ConvertValueToString"
+  ConvertValueToListItemString="ConvertValueToListItemString">
+</SelectComponent>
+
+@code {
+  private Variable? BoundValue
+  {
+    get => Value;
+    set
+    {
+      if (Value != value)
+      {
+        Console.WriteLine("Write Value {0}", value);
+        ValueChanged.InvokeAsync(value);
+      }
+    }
+  }
+
+  [Parameter]
+  public string? Label { get; set; } = string.Empty;
+
+  [Parameter]
+  public List<Variable>? VariableCollection { get; set; } = default!;
+
+  [Parameter]
+  public Variable? Value { get; set; }
+
+  [Parameter]
+  public EventCallback<Variable> ValueChanged { get; set; }
+
+  private bool FilteringCollection(Variable variable, string filter)
+  {
+    return filter.Length >= 1 ? variable.Name.ToLower().Contains(filter.ToLower()) : true;
+  }
+
+  private string ConvertValueToString(Variable? variable)
+  {
+    return variable?.Name ?? string.Empty;
+  }
+
+  private string ConvertValueToListItemString(Variable? variable)
+  {
+    return $"{variable?.Activity?.DisplayName ?? string.Empty}.{variable?.Name ?? string.Empty}";
+  }
+
+  public void Dispose()
+  {
+  }
+}

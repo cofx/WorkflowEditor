@@ -6,6 +6,9 @@
     width: 250px;
     height: 114px;
 }
+.custom-node-extended {
+    width: 480px;
+}
 
 .custom-node .card {
     border: 3px solid transparent;

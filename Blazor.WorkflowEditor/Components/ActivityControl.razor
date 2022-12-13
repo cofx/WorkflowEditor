@@ -1,6 +1,6 @@
 ﻿@using System.Diagnostics.CodeAnalysis
 
-<div class="custom-node">
+<div class="@(!Node.IsExpanded?"custom-node":"custom-node-extended")">
     <div class="card @Node.CssClass">
         @if (!Node.IsExpanded)
         {
@@ -25,17 +25,7 @@
             </div>
             <div class="card-body">
                 <h5 class="card-title">@Node.Text</h5>
-
-                @* @if (Node.IsContainer)
-                    {
-                    <a href="" class="card-link" @onclick="@open" @onclick:preventDefault>Open</a>
-                    }
-                    else
-                    {
-                    <a href="" class="card-link" @onclick="@expand" @onclick:preventDefault>Edit</a>
-                    } *@
-                <!--                <a href="" class="card-link card-delete" @onclick="@delete" @onclick:preventDefault>Delete</a>-->
-        </div>
+            </div>
         }
         else
         {
@@ -56,8 +46,7 @@
                     </div>
                     @Edit
                 </form>
-                <!--                <a href="" class="card-link" @onclick="@collapce" @onclick:preventDefault>Close</a>-->
-        </div>
+            </div>
         }
 
         @foreach (var port in Node.Ports)

@@ -1,18 +1,42 @@
-﻿@using Blazor.WorkflowEditor.Components;
+﻿@using System.Collections
+@using Blazor.WorkflowEditor.Components;
 @typeparam T
-
 <ActivityControl Node="@Node">
     <Edit>
         <div class="mb-3">
             <label for="destination" class="form-label">Destination</label>
         </div>
-        <div class="mb-3">
-            <label for="destination" class="form-label">Destination</label>
-        </div>
+        <VariableSelectControl Label="Collection" @bind-Value="Collection" VariableCollection="VariableCollection">
+        </VariableSelectControl>
+        <VariableSelectControl Label="Variable" @bind-Value="Variable" VariableCollection="Variables">
+        </VariableSelectControl>
     </Edit>
 </ActivityControl>
 
 @code {
     [Parameter]
     public AddToCollectionNode<T> Node { get; set; } = default!;
+
+    private Variable? Collection { get; set; }
+    private Variable? Variable { get; set; }
+
+    private List<Variable> VariableCollection
+    {
+        get
+        {
+            var nodeType = Node.GetType();
+            var cType = typeof(List<>).MakeGenericType(nodeType.GenericTypeArguments);
+            return Node.service.Variables.Where(t => t.Type == cType).ToList();
+        }
+    }
+
+    private List<Variable> Variables
+    {
+        get
+        {
+            var nodeType = Node.GetType();
+            return Node.service.Variables.Where(t => nodeType.GenericTypeArguments.Contains(t.Type)).ToList();
+        }
+    }
+
 }

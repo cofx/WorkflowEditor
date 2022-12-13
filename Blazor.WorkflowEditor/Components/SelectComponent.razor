@@ -1,0 +1,95 @@
+@using System.Linq.Expressions
+@typeparam T
+
+@implements IDisposable
+<div class="mb-3 row" @onmousedown:stopPropagation @onmouseup:stopPropagation @onmousemove:stopPropagation>
+  <label class="col-form-label">@Label</label>
+  <div class="autocomplete">
+    <div class="col-auto">
+      <div class="input-group">
+        <input value="@ConvertValueToString(SelectedValue)" type="text" class="form-control" readonly>
+        <button type="button" class="btn" @onclick="@(()=>SelectedValue=default(T))">
+          <span class="oi oi-x text-primary" style="align-self: center;"></span>
+        </button>
+        <button type="button" class="btn" @onclick="@(()=>_collapsed=!_collapsed)">
+          <span class="oi @(_collapsed?"oi-arrow-bottom":"oi-arrow-top") text-primary"
+            style="align-self: center;"></span>
+        </button>
+      </div>
+    </div>
+    @if (SelectCollection != null && SelectCollection.Count >= 0 && !_collapsed)
+    {
+      <ul class="options">
+        <li class="option-filter">
+          <div class="col-auto">
+            <div class="input-group">
+              <input type="text" @bind="_filter" class="form-control" @oninput="onFilterChanged">
+              <button type="button" class="btn" @onclick="@(()=>_filter=string.Empty)">
+                <span class="oi oi-x text-primary" style="align-self: center;"></span>
+              </button>
+            </div>
+          </div>
+        </li>
+        @foreach (var item in SelectCollection.Where(p =>
+       FilteringCollection(p, _filter) == true).ToList())
+        {
+          <li class="option" @onclick="@(()=>onValueSelected(item))">
+            <span class="option-text">@ConvertValueToListItemString(item)</span>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</div>
+@code {
+  private bool _collapsed { get; set; } = true;
+  private T? _value = default(T);
+  private string _filter { get; set; } = string.Empty;
+
+  [Parameter]
+  public string? Label { get; set; } = string.Empty;
+
+  [Parameter]
+  public Func<T, string, bool> FilteringCollection { get; set; } = default!;
+
+  [Parameter]
+  public Func<T?, string> ConvertValueToString { get; set; } = default!;
+
+  [Parameter]
+  public Func<T?, string> ConvertValueToListItemString { get; set; } = default!;
+
+  [Parameter]
+  public T? SelectedValue
+  {
+    get => _value;
+    set
+    {
+      if (!EqualityComparer<T>.Default.Equals(_value, value))
+      {
+        _value = value;
+        SelectedValueChanged.InvokeAsync(_value);
+      }
+    }
+  }
+
+  [Parameter]
+  public List<T>? SelectCollection { get; set; } = default!;
+
+  [Parameter]
+  public EventCallback<T> SelectedValueChanged { get; set; }
+
+  private void onFilterChanged(ChangeEventArgs e)
+  {
+    _filter = e?.Value?.ToString() ?? string.Empty;
+  }
+
+  private void onValueSelected(T? value)
+  {
+    SelectedValue = value;
+    _filter = ConvertValueToString(value);
+  }
+
+  public void Dispose()
+  {
+  }
+}
