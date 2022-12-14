@@ -1,0 +1,16 @@
+﻿@using Blazor.WorkflowEditor.Components;
+
+<ActivityControl Node="@Node">
+    <Edit>
+        <div class="mb-3">
+            <label for="text" class="form-label">Text</label>
+            <input type="text" class="form-control" id="text" @bind-value="Node.Text" placeholder="Input text"
+                @onmousedown:stopPropagation @onmouseup:stopPropagation @onmousemove:stopPropagation />
+        </div>
+    </Edit>
+</ActivityControl>
+
+@code {
+    [Parameter]
+    public WriteLineNode Node { get; set; } = default!;
+}

@@ -24,8 +24,8 @@
                 </div>
             </div>
             <div class="card-body">
-                <h5 class="card-title">@Node.Text</h5>
-            </div>
+            <h5 class="card-title">@Node.DisplayName</h5>
+        </div>
         }
         else
         {
@@ -40,7 +40,7 @@
                 <form>
                     <div class="mb-3">
                         <label for="displayName" class="form-label">Display name</label>
-                        <input type="text" class="form-control" id="displayName" @bind-value="Node.Text"
+                        <input type="text" class="form-control" id="displayName" @bind-value="Node.DisplayName"
                         placeholder="Input activity display name" @onmousedown:stopPropagation
                         @onmouseup:stopPropagation @onmousemove:stopPropagation />
                     </div>

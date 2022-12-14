@@ -86,7 +86,7 @@ namespace Blazor.WorkflowEditor {
 
             var result = addActivity(activity!);
 
-            var lastNode = Path.Last()?.Reference?.Node;
+            var lastNode = Path.LastOrDefault()?.Reference?.Node;
             if (lastNode != null)
                 lastNode.AddChild(result);
 
@@ -97,7 +97,14 @@ namespace Blazor.WorkflowEditor {
             return activity;
         }
 
+        public void New() {
+            SetActivity(new System.Activities.DynamicActivity());
+        }
+
         public void SetActivity(System.Activities.Activity activity) {
+            Path.CollectionChanged -= pathChanged;
+            Path.Clear();
+
             this.activity = activity;
 
             //read in/out arguments
@@ -113,8 +120,8 @@ namespace Blazor.WorkflowEditor {
                 }
             }
 
+            Path.CollectionChanged += pathChanged;
             Path.Add(PathItem.Root);
-
         }
 
         public void Open(Activity.DefaultNode node) {
@@ -134,8 +141,15 @@ namespace Blazor.WorkflowEditor {
         }
 
         public bool CheckAddActivity(Type activityType) {
-            //if (topActivity == null)
-            //    return true;
+            if (activity == null)
+                return false;
+
+            var last = Path.Last();
+            if (last.Reference == null)
+                return false;
+
+            if (last.Reference.Node.IsContainer == false)
+                return false;
 
             return true;
         }

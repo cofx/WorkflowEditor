@@ -11,7 +11,7 @@ public class DefaultNode : NodeModel {
     public readonly Service service;
     private readonly System.Activities.Activity activity;
 
-    public string Text { get => activity.DisplayName; set => activity.DisplayName = value; }
+    public string DisplayName { get => activity.DisplayName; set => activity.DisplayName = value; }
     public string? Comment { get; set; }
     public bool IsContainer { get; init; } = false;
     public bool IsGeneric { get; set; } = false;
@@ -85,6 +85,8 @@ public class DefaultNode : NodeModel {
     static bool? activityContainsAttachedPropertiesType;
     static System.Reflection.PropertyInfo? attachedPropertiesType;
 
+    public bool HasViewState => viewState != null && !viewState.IsEmpty();
+
     public bool RestoreViewState() {
         if (activityContainsAttachedPropertiesType == null) {
             attachedPropertiesType = activity.GetType().GetProperty("AttachedProperties");
@@ -112,9 +114,11 @@ public class DefaultNode : NodeModel {
             return false;
 
         if (viewState.IsEmpty()) {
-            this.CenterPosition = new Diagrams.Core.Geometry.Point(
-                this.service.DiagramContainer!.Width / 2,
-                this.service.DiagramContainer!.Height / 2);
+            if (this.service.DiagramContainer != null)
+                this.CenterPosition = new Diagrams.Core.Geometry.Point(
+                    this.service.DiagramContainer!.Width / 2,
+                    this.service.DiagramContainer!.Height / 2);
+
             return true;
         }
 
@@ -162,9 +166,6 @@ public class DefaultNode : NodeModel {
 
         return true;
     }
-
-    public bool HasViewState => viewState != null && !viewState.IsEmpty();
-
 
     public void UpdateViewState() {
         bool sizeCompare(Blazor.Diagrams.Core.Geometry.Size sourse, Blazor.Diagrams.Core.Geometry.Size destination) =>
@@ -215,7 +216,6 @@ public class DefaultNode : NodeModel {
         }
     }
 
-
     public void SetOutcoming(PortModel port) {
         if (this.OutcomingPort == port)
             return;
@@ -245,7 +245,6 @@ public class DefaultNode : NodeModel {
     public virtual void AddChild(ActivityDesignerPair source) {
 
     }
-
     public virtual void RemoveChild(System.Activities.Activity child) {
 
     }
