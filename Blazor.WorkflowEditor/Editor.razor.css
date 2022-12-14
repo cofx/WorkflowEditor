@@ -52,11 +52,6 @@
     flex: none;
 }
 
-.editor .diagram-editor .variables .variables-table {
-    max-height: 500px;
-    overflow: auto;
-}
-
 .btn:focus,
 .btn:active {
     outline: none !important;

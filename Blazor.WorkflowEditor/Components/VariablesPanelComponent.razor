@@ -1,0 +1,134 @@
+@using System.Activities;
+@using Blazor.WorkflowEditor;
+@implements IDisposable
+
+<div class="variables-table">
+  <table class="table-sm caption-top w-100">
+    <caption class="clear-fix">
+      Variables
+      <div class="float-end">
+        <div>
+          <button type="button" class="btn">
+            <span class="oi oi-plus text-primary" aria-hidden="true"></span>
+          </button>
+          <button type="button" class="btn" @onclick="()=>_collapsed=!_collapsed">
+            <span class="oi @(_collapsed?"oi-arrow-top":"oi-arrow-bottom") text-primary" aria-hidden="true"></span>
+          </button>
+        </div>
+      </div>
+    </caption>
+    <tbody class="@(_collapsed?"collapse":"")">
+      @foreach (var item in _groupedVariables)
+      {
+        <tr>
+
+          <td>
+            <table @key="item" class="table-sm caption-top w-100">
+              <caption class="clear-fix">
+                <div>
+                  <button type="button" class="btn"
+                  @onclick="()=>reversValueCollapsedGroup(item)">
+                    <span class="oi text-primary @(getCollapsedGroup(item)?"oi-arrow-top":"oi-arrow-bottom")"
+                    style="vertical-align: text-top; cursor: pointer;" aria-hidden="true">
+                    </span>
+                  </button>
+                  @(item.Activity?.DisplayName??"...")
+                </div>
+              </caption>
+              @if (!getCollapsedGroup(item))
+              {
+                <thead>
+                  <tr>
+                    <th scope="col"></th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Default value</th>
+                    <th scope="col"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @foreach (var variable in item.Variables)
+                  {
+                    <tr>
+                      <td style="width: 20px;"></td>
+                      <td>@variable.Name</td>
+                      <td>@variable.Type</td>
+                      <td>@variable.DefaultValue</td>
+                      <td>
+                        <div class="float-end">
+                          <button type="button" class="btn">
+                            <span class="oi oi-pencil text-primary" aria-hidden="true"></span>
+                          </button>
+                          <button type="button" class="btn">
+                            <span class="oi oi-x text-danger" aria-hidden="true"></span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              }
+            </table>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+
+@code {
+  public class GroupedActivityVariable
+  {
+    public System.Activities.Activity? Activity { get; set; }
+    public List<Blazor.WorkflowEditor.Variable> Variables { get; set; } = new();
+  }
+
+  private Dictionary<string, bool> _collapsedGroup = new();
+  private bool _collapsed { get; set; } = false;
+
+  private List<GroupedActivityVariable> _groupedVariables
+  {
+    get
+    {
+      List<GroupedActivityVariable> result = new List<GroupedActivityVariable>();
+      if (Service == null) return result;
+      foreach (var item in Service.Variables)
+      {
+        var group = result.FirstOrDefault(p => p.Activity == item.Activity);
+        if (group == null)
+        {
+          group = new GroupedActivityVariable
+          {
+            Activity = item.Activity,
+            Variables = new List<Blazor.WorkflowEditor.Variable>()
+          };
+          result.Add(group);
+        }
+        group.Variables.Add(item);
+        if (!_collapsedGroup.ContainsKey($"{group?.Activity?.DisplayName ?? ""}"))
+        {
+          _collapsedGroup.Add($"{group?.Activity?.DisplayName ?? ""}", false);
+        }
+      };
+      return result;
+    }
+  }
+
+  [Parameter, EditorRequired]
+  public Service? Service { get; set; }
+
+  private bool getCollapsedGroup(GroupedActivityVariable group){
+    return _collapsedGroup.ContainsKey($"{group?.Activity?.DisplayName ?? ""}")?_collapsedGroup[$"{group?.Activity?.DisplayName ?? ""}"]:false;
+  }
+
+  private void reversValueCollapsedGroup(GroupedActivityVariable group){
+    if(_collapsedGroup.ContainsKey($"{group?.Activity?.DisplayName ?? ""}")){
+      _collapsedGroup[$"{group?.Activity?.DisplayName ?? ""}"] = !_collapsedGroup[$"{group?.Activity?.DisplayName ?? ""}"];
+    }
+  }
+
+  public void Dispose()
+  {
+  }
+}
