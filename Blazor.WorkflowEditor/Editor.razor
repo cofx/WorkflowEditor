@@ -40,7 +40,7 @@
                             @foreach (var item in group.Items)
                             {
                                 <li @key="item" class="@((item.Image==null?"activityItemWithoutIcon":"activityItem"))"
-                        draggable="true" @ondragstart="() => OnDragStart(item)">
+                        draggable="true" @ondragstart="() => OnDragStart(item)" @ondragenter="() => OnDragEnter(item)">
                                     @if (item.Image != null)
                                     {
                                         <span class="@item.Image" aria-hidden="true"></span>
@@ -68,7 +68,7 @@
         </div>
 
         <div class="diagram-main">
-            <div class="diagram" ondragover="event.preventDefault();" @ondragover:preventDefault @ondrop="OnDrop">
+            <div class="@diagramStyle" ondragover="event.preventDefault();" @ondragover:preventDefault @ondrop="OnDrop">
                 <CascadingValue Value="designer">
                     <CascadingValue Value="service">
                         <DiagramCanvas></DiagramCanvas>
@@ -180,6 +180,8 @@
     private int toolboxWidth = 36;
     private string toolboxStyle = "";
 
+    private string diagramStyle = "diagram";
+
     private IEnumerable<ToolBoxGroup> FilterdToolBoxGroups
     {
         get
@@ -272,13 +274,23 @@
 
     private void OnDragStart(ToolBoxItem key)
     {
+        if (service.CheckAddActivity(key.TypeOfActivity) == false)
+            return;
+
         draggedToolboxItem = key;
+    }
+
+    private void OnDragEnter(ToolBoxItem key)
+    {
+        if (service.CheckAddActivity(key.TypeOfActivity) == false)
+            return;
     }
 
     private async void OnDrop(DragEventArgs e)
     {
         if (draggedToolboxItem == null)
             return;
+
         if (draggedToolboxItem.TypeOfActivity.IsGenericType)
         {
             if (genericTypeSelectModal == null) return;
@@ -309,6 +321,11 @@
     public void Edit(System.Activities.Activity source)
     {
         service.SetActivity(source);
+    }
+
+    public void New()
+    {
+        service.New();
     }
 
     public void Load(string source)

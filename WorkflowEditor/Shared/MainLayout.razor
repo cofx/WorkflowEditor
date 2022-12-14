@@ -87,14 +87,16 @@
 
     protected override void OnAfterRender(bool firstRender)
     {
-        // if (firstRender)
-        // editor.RegisterModelComponent();
-
+        //if (firstRender)
+        // New();
     }
 
     private void New()
     {
-
+        if (editor != null)
+        {
+            editor.New();
+        }
     }
 
     private async void Save()
@@ -160,6 +162,9 @@ PublicKeyToken=31bf3856ad364e35</AssemblyReference>
 <Variable x:TypeArguments=""x:Int32"" Name=""Var"" Default=""12345"" />
 <Variable x:TypeArguments=""x:Int32"" Name=""Var33"" Default=""12345"" />
 </Sequence.Variables>
+<WriteLine Text=""test1"" />
+<WriteLine Text=""test2"" />
+<WriteLine Text=""test3"" />
 </Sequence>
 </Sequence>";
 
