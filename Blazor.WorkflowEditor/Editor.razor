@@ -331,6 +331,9 @@
     public void Load(string source)
     {
         var activity = (System.Activities.Activity)System.Xaml.XamlServices.Parse(source);
+        //TODO add validation info
+        var validationResults = System.Activities.Validation.ActivityValidationServices.Validate(activity);
+
         service.SetActivity(activity);
     }
 

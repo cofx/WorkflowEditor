@@ -23,6 +23,7 @@ namespace Blazor.WorkflowEditor {
 
         public ObservableCollection<PathItem> Path = new();
         public ObservableCollection<Variable> Variables { get; set; } = new();
+        public Dictionary<string, WorkflowEditor.Activity.State.ViewState> States = new();
 
         public Diagrams.Core.Geometry.Rectangle? DiagramContainer => this.designer.Container;
 
@@ -231,6 +232,9 @@ namespace Blazor.WorkflowEditor {
         }
 
         private void pathChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
+            //TODO: for variable try use
+            //System.Activities.ScopeUtils.GetLocals(this Activity activity) 
+
             if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add) {
                 var items = e.NewItems!.OfType<PathItem>();
                 foreach (var newItem in items) {
