@@ -82,36 +82,16 @@ public class DefaultNode : NodeModel {
 
     }
 
-    static bool? activityContainsAttachedPropertiesType;
-    static System.Reflection.PropertyInfo? attachedPropertiesType;
-
     public bool HasViewState => viewState != null && !viewState.IsEmpty();
 
     public bool RestoreViewState() {
-        if (activityContainsAttachedPropertiesType == null) {
-            attachedPropertiesType = activity.GetType().GetProperty("AttachedProperties");
-            activityContainsAttachedPropertiesType = attachedPropertiesType != null;
+
+        this.viewState = Blazor.WorkflowEditor.Activity.State.ViewStateStore.Get(activity);
+
+        if (this.viewState == null) {
+            this.viewState = new();
+            Blazor.WorkflowEditor.Activity.State.ViewStateStore.Set(activity, this.viewState);
         }
-
-        if (activityContainsAttachedPropertiesType == false)
-            return false;
-
-        //Check ViewState property
-        if (attachedPropertiesType != null) {
-            var attachedProperties = attachedPropertiesType.GetValue(this.activity) as Dictionary<string, Object>;
-            if (attachedProperties == null)
-                attachedProperties = new Dictionary<string, object>();
-
-            attachedProperties.TryGetValue("ViewState", out var storedState);
-            if (storedState is State.ViewState defaultViewState && defaultViewState != null)
-                this.viewState = defaultViewState;
-            else {
-                this.viewState = new State.ViewState();
-                attachedProperties.Add("ViewState", this.viewState);
-            }
-        }
-        if (viewState == null)
-            return false;
 
         if (viewState.IsEmpty()) {
             if (this.service.DiagramContainer != null)
@@ -124,11 +104,11 @@ public class DefaultNode : NodeModel {
 
         //This is tempory code...
 
-        if (viewState.cX.HasValue && viewState.cY.HasValue)
-            this.CenterPosition = new Point((double)viewState.cX, (double)viewState.cY);
+        if (viewState.CenterX.HasValue && viewState.CenterY.HasValue)
+            this.CenterPosition = new Point((double)viewState.CenterX, (double)viewState.CenterY);
 
-        if (viewState.W.HasValue && viewState.H.HasValue)
-            this.Size = new Size((double)viewState.W, (double)viewState.H);
+        if (viewState.Widht.HasValue && viewState.Height.HasValue)
+            this.Size = new Size((double)viewState.Widht, (double)viewState.Height);
 
         if (viewState.Comment != null)
             this.Comment = viewState.Comment;
@@ -139,8 +119,8 @@ public class DefaultNode : NodeModel {
         if (viewState.Zoom != null)
             this.Zoom = viewState.Zoom;
 
-        if (viewState.oX.HasValue && viewState.oY.HasValue)
-            this.Offcet = new Point((double)viewState.oX, (double)viewState.oY);
+        if (viewState.OffcetX.HasValue && viewState.OffcetY.HasValue)
+            this.Offcet = new Point((double)viewState.OffcetX, (double)viewState.OffcetY);
 
         if (viewState.IncomingPortAlign != null) {
             var _incomingPort = viewState.IncomingPortAlign switch {
@@ -176,15 +156,15 @@ public class DefaultNode : NodeModel {
         if (viewState == null)
             return;
 
-        this.viewState.cX = (int)this.CenterPosition.X;
-        this.viewState.cY = (int)this.CenterPosition.Y;
+        this.viewState.CenterX = (int)this.CenterPosition.X;
+        this.viewState.CenterY = (int)this.CenterPosition.Y;
 
         if (this.Size != null && sizeCompare(this.Size, this.defaultSize) == false) {
-            this.viewState.W = (int)this.Size.Width;
-            this.viewState.H = (int)this.Size.Height;
+            this.viewState.Widht = (int)this.Size.Width;
+            this.viewState.Height = (int)this.Size.Height;
         } else {
-            this.viewState.W = null;
-            this.viewState.H = null;
+            this.viewState.Widht = null;
+            this.viewState.Height = null;
         }
 
         this.viewState.Comment = this.Comment;
@@ -208,11 +188,11 @@ public class DefaultNode : NodeModel {
         this.viewState.Zoom = Zoom;
 
         if (this.Offcet != null) {
-            this.viewState.oX = (int)this.Offcet.X;
-            this.viewState.oY = (int)this.Offcet.Y;
+            this.viewState.OffcetX = (int)this.Offcet.X;
+            this.viewState.OffcetY = (int)this.Offcet.Y;
         } else {
-            this.viewState.oX = null;
-            this.viewState.oY = null;
+            this.viewState.OffcetX = null;
+            this.viewState.OffcetY = null;
         }
     }
 

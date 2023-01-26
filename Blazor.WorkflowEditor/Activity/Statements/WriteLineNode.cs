@@ -10,5 +10,13 @@ public class WriteLineNode : DefaultNode {
         this.activity = activity;
     }
 
-    public string? Text { get; set; }
+    //TODO: ..\CoreWF\src\Test\TestCases.Workflows\ExpressionTests.cs 
+    public string? Text {
+        get {
+            return (activity.Text.Expression as System.Activities.Expressions.Literal<string>)!.Value;
+        }
+        set {
+            (activity.Text.Expression as System.Activities.Expressions.Literal<string>)!.Value = value;
+        }
+    }
 }

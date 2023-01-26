@@ -5,8 +5,6 @@ VisualStudioVersion = 17.2.32630.192
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkflowEditor", "WorkflowEditor\WorkflowEditor.csproj", "{AB81DF15-DDE9-4F9A-805F-E5DBC5BFB3AD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleApp1", "ConsoleApp1\ConsoleApp1.csproj", "{05D3B1CF-A8CC-4259-91C9-D6D6DB6F5648}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Blazor.WorkflowEditor", "Blazor.WorkflowEditor\Blazor.WorkflowEditor.csproj", "{E635D91D-3E99-481C-B897-FBC2B3BE3721}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{039E3882-9D08-4E79-A0E7-1A50D4A2D3D0}"
