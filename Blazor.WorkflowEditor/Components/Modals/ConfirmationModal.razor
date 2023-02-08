@@ -1,0 +1,40 @@
+@implements IDisposable
+@implements IModal
+
+<Modal @ref="Modal">
+  <Header>
+    <ModalHeader TitleText="@Title" OnClose="Modal!.Close"></ModalHeader>
+  </Header>
+
+  <Body>
+    <p>@Message</p>
+  </Body>
+
+  <Footer>
+    <ModalFooter OnClose="Modal!.Close" OnApply="Modal!.Apply" ApplyButtonText="@ApplyButtonText"></ModalFooter>
+  </Footer>
+</Modal>
+@code {
+  [Parameter]
+  public string? Message { get; set; } = string.Empty;
+
+  [Parameter]
+  public string? Title { get; set; } = "Confirm";
+
+  [Parameter]
+  public string? ApplyButtonText { get; set; } = null;
+
+  private Modal? Modal { get; set; }
+
+  public ModalResult ModalResult { get => Modal!.ModalResult; }
+
+  public Task<ModalResult> Show()
+  {
+    return Modal!.Show();
+  }
+
+  public void Dispose()
+  {
+    Modal!.Hide();
+  }
+}

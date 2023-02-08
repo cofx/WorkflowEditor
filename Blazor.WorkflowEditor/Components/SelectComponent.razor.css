@@ -1,6 +1,7 @@
 .autocomplete {
   position: relative;
 }
+
 .autocomplete .options {
   position: absolute;
   top: 40px;
@@ -12,6 +13,9 @@
   border: 1px solid #ced4da;
   border-radius: 0.5rem;
   box-shadow: 0 30px 25px 8px rgba(0, 0, 0, 0.1);
+  max-height: 500px;
+  overflow: auto;
+
 }
 .autocomplete .option {
   display: block;

@@ -1,5 +1,6 @@
 @using System.Activities;
 @using Blazor.WorkflowEditor;
+@using System.Reflection
 @implements IDisposable
 
 <div class="variables-table">
@@ -9,7 +10,7 @@
       <div class="float-end">
         <div>
           <button type="button" class="btn">
-            <span class="oi oi-plus text-primary" aria-hidden="true"></span>
+            <span class="oi oi-plus text-primary" aria-hidden="true" @onclick="()=>addVariable()"></span>
           </button>
           <button type="button" class="btn" @onclick="()=>_collapsed=!_collapsed">
             <span class="oi @(_collapsed?"oi-arrow-top":"oi-arrow-bottom") text-primary" aria-hidden="true"></span>
@@ -56,10 +57,10 @@
                       <td>@variable.DefaultValue</td>
                       <td>
                         <div class="float-end">
-                          <button type="button" class="btn">
+                          <button type="button" class="btn" @onclick="@(()=>editVariable(variable))">
                             <span class="oi oi-pencil text-primary" aria-hidden="true"></span>
                           </button>
-                          <button type="button" class="btn">
+                          <button type="button" class="btn" @onclick="()=>removeVariable(variable)">
                             <span class="oi oi-x text-danger" aria-hidden="true"></span>
                           </button>
                         </div>
@@ -78,6 +79,9 @@
 
 
 @code {
+  [CascadingParameter]
+  private ModalService? _modalService{get;set;}
+
   public class GroupedActivityVariable
   {
     public System.Activities.Activity? Activity { get; set; }
@@ -118,6 +122,10 @@
   [Parameter, EditorRequired]
   public Service? Service { get; set; }
 
+  [Parameter]
+  public List<Type>? TypeCollection{get;set;}
+
+
   private bool getCollapsedGroup(GroupedActivityVariable group){
     return _collapsedGroup.ContainsKey($"{group?.Activity?.DisplayName ?? ""}")?_collapsedGroup[$"{group?.Activity?.DisplayName ?? ""}"]:false;
   }
@@ -127,6 +135,76 @@
       _collapsedGroup[$"{group?.Activity?.DisplayName ?? ""}"] = !_collapsedGroup[$"{group?.Activity?.DisplayName ?? ""}"];
     }
   }
+
+  private async void removeVariable(Blazor.WorkflowEditor.Variable variable){
+    if(_modalService==null)return;
+    var modal = await   _modalService.ShowModal<ConfirmationModal>(new (){
+      {"Title","Delete variable"},
+      {"Message",$"Delete variable {variable.Name}?"},
+      {"ApplyButtonText","Delete"},
+    });
+    if(modal.ModalResult==ModalResult.Applied){
+      Service?.Variables.Remove(variable);
+    }
+    StateHasChanged();
+  }
+
+  private  async void editVariable(Blazor.WorkflowEditor.Variable variable){
+    if(_modalService==null)return;
+    var defaultValue = variable.DefaultValue?.ToString() ?? "";
+    var modal = await   _modalService.ShowModal<VariableCreateModal>(new (){
+      {"Title","Edit variable"},
+      {"ApplyButtonText","Apply"},
+      {"TypeCollection",TypeCollection??new List<Type>()},
+      {"VariableName",variable.Name},
+      {"DefaultValue",defaultValue},
+      {"VariableType",variable.Type},
+    });
+    if(modal.ModalResult==ModalResult.Applied){
+      variable.Name =modal?.VariableName ?? "";
+      variable.DefaultValue = defaultValue;
+      variable.Type = modal?.BuildedType ?? typeof(object);
+    }
+    StateHasChanged();
+  }
+
+  private  async void addVariable(){
+    Blazor.WorkflowEditor.Variable variable = new(); 
+    var defaultValue =  "";
+    if(_modalService==null)return;
+    var modal = await   _modalService.ShowModal<VariableCreateModal>(new (){
+      {"Title","Add variable"},
+      {"ApplyButtonText","Apply"},
+      {"TypeCollection",TypeCollection??new List<Type>()},
+      {"VariableName",variable.Name},
+      {"DefaultValue",defaultValue},
+      {"VariableType",variable.Type},
+    });
+    if(modal.ModalResult==ModalResult.Applied){
+      variable.Name =modal?.VariableName ?? "";
+      variable.DefaultValue = defaultValue;
+      variable.Type = modal?.BuildedType ?? typeof(object);
+      variable.Activity = Service?.GetActivity();
+      Service?.Variables.Add(variable);
+    }
+    StateHasChanged();
+  }
+
+    protected override void OnInitialized()
+  {
+    base.OnInitialized();
+    Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+    if(TypeCollection==null){
+      TypeCollection = new();
+    }else{
+      TypeCollection.Clear();
+    }
+    foreach (var assembly in assemblies)
+    {
+      TypeCollection.AddRange(assembly.GetTypes());
+    }    
+  }
+
 
   public void Dispose()
   {

@@ -1,0 +1,16 @@
+@Content
+
+@code {
+  [Parameter]
+  public RenderFragment? Content { get; set; }
+
+  [Parameter]
+  public EventCallback AfterFirstRender { get; set; }
+
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (firstRender)
+      await AfterFirstRender.InvokeAsync(null);
+    base.OnAfterRender(firstRender);
+  }
+}

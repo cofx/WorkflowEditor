@@ -1,0 +1,52 @@
+@using System.Linq.Expressions
+@implements IDisposable
+
+<SelectComponent T=Type Label="@Label" @bind-SelectedValue="BoundValue" SelectCollection="TypeCollection"
+  FilteringCollection="FilteringCollection" ConvertValueToString="ConvertValueToString"
+  ConvertValueToListItemString="ConvertValueToListItemString">
+</SelectComponent>
+
+@code {
+  private Type? BoundValue
+  {
+    get => Value;
+    set
+    {
+      if (Value != value)
+      {
+        ValueChanged.InvokeAsync(value);
+      }
+    }
+  }
+
+  [Parameter]
+  public string? Label { get; set; } = string.Empty;
+
+  [Parameter]
+  public List<Type>? TypeCollection { get; set; } = default!;
+
+  [Parameter]
+  public Type? Value { get; set; }
+
+  [Parameter]
+  public EventCallback<Type> ValueChanged { get; set; }
+
+  private bool FilteringCollection(Type type, string filter)
+  {
+    return filter.Length >= 1 ? type.ToString().ToLower().Contains(filter.ToLower()) : true;
+  }
+
+  private string ConvertValueToString(Type? type)
+  {
+    return type?.ToString() ?? string.Empty;
+  }
+
+  private string ConvertValueToListItemString(Type? type)
+  {
+    return $"{type?.ToString() ?? string.Empty}";
+  }
+
+  public void Dispose()
+  {
+  }
+}

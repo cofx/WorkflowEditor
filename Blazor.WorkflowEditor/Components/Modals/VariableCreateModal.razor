@@ -1,0 +1,68 @@
+@implements IDisposable
+@implements IModal
+
+<Modal @ref="Modal">
+  <Header>
+    <ModalHeader TitleText="@Title" OnClose="Modal!.Close"></ModalHeader>
+  </Header>
+
+  <Body>
+    <div class="mb-3 row">
+      <label for="inputName" class="col-4 col-form-label">Name</label>
+      <div class="col-8">
+        <input type="text" class="form-control" id="inputName" @bind="VariableName">
+      </div>
+    </div>
+
+    <VariableTypeConstructorComponent @ref="_objRef" TypeCollection="TypeCollection" VariableType="VariableType">
+    </VariableTypeConstructorComponent>
+
+    <div class="mb-3 row">
+      <label for="inputDefaultValue" class="col-4 col-form-label">DefaultValue</label>
+      <div class="col-8">
+        <input type="text" class="form-control" id="inputDefaultValue" @bind="DefaultValue">
+      </div>
+    </div>
+
+  </Body>
+  <Footer>
+    <ModalFooter OnClose="Modal!.Close" OnApply="Modal!.Apply" ApplyButtonText="@ApplyButtonText"></ModalFooter>
+  </Footer>
+</Modal>
+@code {
+  private object? _objRef;
+
+  [Parameter]
+  public List<Type>? TypeCollection { get; set; }
+
+  [Parameter]
+  public Type? VariableType { get; set; }
+
+  [Parameter]
+  public string? Title { get; set; } = "Confirm";
+
+  [Parameter]
+  public string? ApplyButtonText { get; set; } = "Apply";
+
+  [Parameter]
+  public string? VariableName { get; set; } = "";
+
+  [Parameter]
+  public string? DefaultValue { get; set; } = "";
+
+  private Modal? Modal { get; set; }
+
+  public Type? BuildedType { get => _objRef == null ? null : ((VariableTypeConstructorComponent)_objRef).BuildedType; }
+
+  public ModalResult ModalResult { get => Modal!.ModalResult; }
+
+  public Task<ModalResult> Show()
+  {
+    return Modal!.Show();
+  }
+
+  public void Dispose()
+  {
+    Modal!.Hide();
+  }
+}

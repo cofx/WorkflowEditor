@@ -1,0 +1,117 @@
+@using System.ComponentModel
+@using System.Runtime.CompilerServices
+@implements IDisposable
+<div class="row">
+  <div class="col">
+    <div class="">
+      <label class="col-form-label">@(Value.Value?.ToString()??"Select type")</label>
+      @if (Value.Value != null)
+      {
+        <button type="button" class="btn" @onclick="()=>Value.Value=null">
+          <span class="oi oi-x text-primary" aria-hidden="true"></span>
+        </button>
+      }
+    </div>
+    @if (Value.Childs.Count > 0)
+    {
+      <ul class="options">
+        @foreach (var child in Value.Childs)
+        {
+          <li class="option">
+            <VariableTypeConstructorComponent @key="child" @ref="child.ObjRef" TypeCollection="TypeCollection"
+          Value="child">
+            </VariableTypeConstructorComponent>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+  @if (Value.Value == null)
+  {
+    <div class="col-8">
+      <TypeSelectComponent TypeCollection="TypeCollection" @bind-Value="Value.Value"></TypeSelectComponent>
+    </div>
+  }
+</div>
+
+@code {
+  public class TypeItem : INotifyPropertyChanged
+  {
+    private Type? _value = null;
+    public Type? Value
+    {
+      get => _value;
+      set
+      {
+        if (_value == value) return;
+        Childs.Clear();
+        if (!isGeneric(value) || value == null)
+        {
+          _value = value;
+        }
+        else
+        {
+          if (isImplementedGeneric(value))
+          {
+            _value = value.GetGenericTypeDefinition();
+            Childs.AddRange(value.GenericTypeArguments.Select(s => new TypeItem { Value = s }).ToList());
+          }
+          else
+          {
+            _value = value;
+            Childs.AddRange(value.GetGenericArguments().Select(s => new TypeItem { }).ToList());
+          }
+        }
+        OnPropertyChanged();
+      }
+    }
+
+    public object? ObjRef { get; set; }
+    public List<TypeItem> Childs { get; } = new();
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+    public void OnPropertyChanged([CallerMemberName] string prop = "")
+    {
+      if (PropertyChanged != null)
+        PropertyChanged(this, new PropertyChangedEventArgs(prop));
+    }
+
+    public Type? BuildType()
+    {
+      if (_value == null || !isGeneric(_value)) return _value;
+      var types = Childs.Select(s => s.BuildType()).ToArray();
+      if (types.Any(p => p == null)) return null;
+      return _value.MakeGenericType(types!);
+    }
+
+    private bool isGeneric(Type? type) => type != null && type?.IsGenericType == true;
+    private bool isImplementedGeneric(Type? type) => type != null && type.GenericTypeArguments.Count() != 0;
+  }
+
+  private Type? _prevValue;
+
+  [Parameter]
+  public Type? VariableType
+  {
+    get => Value.Value;
+    set
+    {
+      if (_prevValue == value) return;
+      _prevValue = value;
+      Value.Value = value;
+      StateHasChanged();
+    }
+  }
+
+  public Type? BuildedType { get => Value.BuildType(); }
+
+  [Parameter]
+  public TypeItem Value { get; set; } = new();
+
+  [Parameter, EditorRequired]
+  public List<Type>? TypeCollection { get; set; }
+
+  public void Dispose()
+  {
+  }
+}

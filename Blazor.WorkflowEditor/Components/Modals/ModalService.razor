@@ -1,0 +1,11 @@
+<CascadingValue Value="this">
+  @foreach (var modal in Modals)
+        {
+          <WrapperModalService @key="modal" AfterFirstRender="modal.AfterFirstRender">
+            <Content>
+              <DynamicComponent @key="modal" @ref="modal.ObjRef" Type="modal.ModalType" Parameters="modal.Parameters">
+              </DynamicComponent>
+            </Content>
+          </WrapperModalService>
+        }
+      </CascadingValue>

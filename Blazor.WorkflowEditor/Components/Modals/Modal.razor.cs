@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components;
 
-namespace Blazor.WorkflowEditor.Components;
+namespace Blazor.WorkflowEditor.Components.Modals;
 
 public enum ModalResult {
     None,
@@ -9,8 +9,8 @@ public enum ModalResult {
     Showing
 }
 
-public partial class Modal : ComponentBase, IDisposable {
-    private CancellationTokenSource? FinishConfirm;
+public partial class Modal : ComponentBase, IModal, IDisposable {
+    private TaskCompletionSource<ModalResult> _taskCompletionSource = new TaskCompletionSource<ModalResult>();
     private bool _isShowed = false;
     public bool IsShowed {
         get {
@@ -54,15 +54,9 @@ public partial class Modal : ComponentBase, IDisposable {
     public Modal() : base() {
     }
 
-    public async Task<ModalResult> Show() {
+    public Task<ModalResult> Show() {
         IsShowed = true;
-        try {
-            using (FinishConfirm = new()) {
-                await Task.Delay(-1, FinishConfirm.Token);
-            }
-        } catch (TaskCanceledException) {
-        }
-        return ModalResult;
+        return _taskCompletionSource.Task;
     }
 
     public void Hide() {
@@ -82,9 +76,7 @@ public partial class Modal : ComponentBase, IDisposable {
     }
     private void UpdateState(ModalResult result) {
         ModalResult = result;
-        if (FinishConfirm != null && FinishConfirm.Token.CanBeCanceled) {
-            FinishConfirm.Cancel();
-        }
+        _taskCompletionSource.SetResult(result);
         IsShowed = false;
     }
 }

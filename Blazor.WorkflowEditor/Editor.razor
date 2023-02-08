@@ -1,89 +1,97 @@
 ﻿@using Blazor.WorkflowEditor.Components
 @implements IDisposable
 
+
 <div class="editor">
-    <GenericTypeSelectModal @ref="genericTypeSelectModal" Types="TypeCollection"></GenericTypeSelectModal>
+    <ModalService @ref="_modalServiceCv"></ModalService>
+    <CascadingValue Value="_modalServiceCv">
+        <GenericTypeSelectModal @ref="genericTypeSelectModal" Types="TypeCollection"></GenericTypeSelectModal>
 
-    <div class="toolbox" style="@toolboxStyle">
-        <div class="caption">
-            <div class="row">
-                <div class="col-1">
-                    <button type="button" class="btn" @onclick="()=>ToolboxCollapse()">
-                        <span class="oi @ToolboxCollapsedIcon() text-primary" aria-hidden="true"></span>
-                    </button>
-                </div>
-                @if (!toolboxCollapsed)
-                {
-
-                    <div class="col-11">
-                        <div class="input-group">
-                            <input type="text" class="form-control" @bind="toolboxFilter">
-                            <button type="button" class="btn" @onclick="()=>toolboxFilter=string.Empty">
-                                <span class="oi oi-x text-primary" style="align-self: center;"></span>
-                            </button>
-                        </div>
+        <div class="toolbox" style="@toolboxStyle">
+            <div class="caption">
+                <div class="row">
+                    <div class="col-1">
+                        <button type="button" class="btn" @onclick="()=>ToolboxCollapse()">
+                            <span class="oi @ToolboxCollapsedIcon() text-primary" aria-hidden="true"></span>
+                        </button>
                     </div>
-                }
-            </div>
-        </div>
-        @if (!toolboxCollapsed)
-        {
-            <ul class="groups list-unstyled">
-                @foreach (var group in FilterdToolBoxGroups)
-                {
-                    <li class="groupItem">
-                        <div class="groupName" @onclick="()=>CollapseGroup(group.Name)">
-                            <span class="oi @GroupCollapsedIcon(group.Name)" aria-hidden="true"></span>
-                            @group.Name
-                        </div>
-                        <ul class="items list-unstyled @(HasGroupCollapsed(group.Name))">
-                            @foreach (var item in group.Items)
-                            {
-                                <li @key="item" class="@((item.Image==null?"activityItemWithoutIcon":"activityItem"))"
-                        draggable="true" @ondragstart="() => OnDragStart(item)">
-                                    @if (item.Image != null)
-                                    {
-                                        <span class="@item.Image" aria-hidden="true"></span>
-                                    }
-                                    @item.Name
-                                </li>
-                            }
-                        </ul>
-                    </li>
-                }
-            </ul>
-        }
-    </div>
-
-    <div class="diagram-editor">
-        <div class="diagram-path">
-            <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    @foreach (var pathItem in service.Path)
+                    @if (!toolboxCollapsed)
                     {
-                        <li class="breadcrumb-item"><a href="#" @onclick="()=>OpenPath(pathItem)">@pathItem.Name</a></li>
+
+                        <div class="col-11">
+                            <div class="input-group">
+                                <input type="text" class="form-control" @bind="toolboxFilter">
+                                <button type="button" class="btn" @onclick="()=>toolboxFilter=string.Empty">
+                                    <span class="oi oi-x text-primary" style="align-self: center;"></span>
+                                </button>
+                            </div>
+                        </div>
                     }
-                </ol>
-            </nav>
+                </div>
+            </div>
+            @if (!toolboxCollapsed)
+            {
+                <ul class="groups list-unstyled">
+                    @foreach (var group in FilterdToolBoxGroups)
+                    {
+                        <li class="groupItem">
+                            <div class="groupName" @onclick="()=>CollapseGroup(group.Name)">
+                                <span class="oi @GroupCollapsedIcon(group.Name)" aria-hidden="true"></span>
+                                @group.Name
+                            </div>
+                            <ul class="items list-unstyled @(HasGroupCollapsed(group.Name))">
+                                @foreach (var item in group.Items)
+                                {
+                                    <li @key="item" class="@((item.Image==null?"activityItemWithoutIcon":"activityItem"))"
+                            draggable="true" @ondragstart="() => OnDragStart(item)">
+                                        @if (item.Image != null)
+                                        {
+                                            <span class="@item.Image" aria-hidden="true"></span>
+                                        }
+                                        @item.Name
+                                    </li>
+                                }
+                            </ul>
+                        </li>
+                    }
+                </ul>
+            }
         </div>
 
-        <div class="diagram-main">
-            <div class="diagram" ondragover="event.preventDefault();" @ondragover:preventDefault @ondrop="OnDrop">
-                <CascadingValue Value="designer">
-                    <CascadingValue Value="service">
-                        <DiagramCanvas></DiagramCanvas>
+        <div class="diagram-editor">
+            <div class="diagram-path">
+                <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        @foreach (var pathItem in service.Path)
+                        {
+                            <li class="breadcrumb-item"><a href="#" @onclick="()=>OpenPath(pathItem)">@pathItem.Name</a>
+                            </li>
+                        }
+                    </ol>
+                </nav>
+            </div>
+
+            <div class="diagram-main">
+                <div class="diagram" ondragover="event.preventDefault();" @ondragover:preventDefault @ondrop="OnDrop">
+                    <CascadingValue Value="designer">
+                        <CascadingValue Value="service">
+                            <DiagramCanvas></DiagramCanvas>
+                        </CascadingValue>
                     </CascadingValue>
-                </CascadingValue>
+                </div>
+            </div>
+
+            <div class="variables">
+                <VariablesPanelComponent Service="service"></VariablesPanelComponent>
             </div>
         </div>
-
-        <div class="variables">
-            <VariablesPanelComponent Service="service"></VariablesPanelComponent>
-        </div>
-    </div>
+    </CascadingValue>
 </div>
 
 @code {
+    private ModalService? _modalServiceCv { get; set; }
+
+
     private GenericTypeSelectModal? genericTypeSelectModal = new GenericTypeSelectModal();
 
     private Diagram designer { get; set; } = default!;
@@ -127,10 +135,6 @@
         }
     }
     private string toolboxFilter { get; set; } = string.Empty;
-
-
-    private Dictionary<string, bool> variablesGroupCollapsed { get; set; } = new Dictionary<string, bool>();
-
 
     protected override void OnInitialized()
     {
@@ -186,7 +190,7 @@
 
             (bool hasAdded, var result) =
             service.AddActivity(draggedToolboxItem.TypeOfActivity, genericTypeSelectModal.GenericTypes.Select(s =>
-            s.Value).ToArray());
+            s.Value).ToArray()!);
             if (!hasAdded) return;
             var position = designer.GetRelativeMousePoint(e.ClientX, e.ClientY);
             result.Node.CenterPosition = position;
