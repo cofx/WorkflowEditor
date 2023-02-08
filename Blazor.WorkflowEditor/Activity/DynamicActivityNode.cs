@@ -13,8 +13,14 @@ public class DynamicActivityNode : DefaultNode {
     }
 
     public override void LoadChilds(Func<System.Activities.Activity, ActivityDesignerPair> addActivity) {
-        var activity = dynamicActivity.Implementation();
-        addActivity(activity);
+        var activity = dynamicActivity.Implementation?.Invoke();
+        if (activity != null)
+            addActivity(activity);
     }
+
+    public override IEnumerable<Variable> GetVariables() {
+        return GetVariables(dynamicActivity.Properties);
+    }
+
 }
 

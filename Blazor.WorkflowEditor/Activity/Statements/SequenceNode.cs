@@ -1,5 +1,4 @@
 ﻿using System.Activities.Statements;
-using System.Collections.ObjectModel;
 using Blazor.Diagrams.Core.Models;
 
 namespace Blazor.WorkflowEditor.Activity.Statements;
@@ -15,8 +14,8 @@ public class SequenceNode : DefaultNode {
         this.service.SelectedOnMove += onMove;
     }
 
-    public override Collection<System.Activities.Variable> GetVariables() {
-        return new Collection<System.Activities.Variable>(sequenceActivity.Variables);
+    public override IEnumerable<Variable> GetVariables() {
+        return GetVariables(sequenceActivity.Variables);
     }
 
     void linkFromTo(ActivityDesignerPair from, ActivityDesignerPair to) {
@@ -59,7 +58,6 @@ public class SequenceNode : DefaultNode {
             }
         }
 
-
     }
 
     public override void AddChild(ActivityDesignerPair child) {
@@ -99,7 +97,6 @@ public class SequenceNode : DefaultNode {
             var nextActivity = sequenceActivity.Activities[index + 1];
             service.LinkFromTo(service.GetPair(prevActivity), service.GetPair(nextActivity));
         }
-
 
         sequenceActivity.Activities.Remove(child);
     }

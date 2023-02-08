@@ -1,6 +1,5 @@
 ﻿using System.Activities;
 using System.Collections.ObjectModel;
-using System.Reflection;
 using Blazor.Diagrams.Core;
 using Blazor.Diagrams.Core.Models;
 using Blazor.Diagrams.Core.Models.Base;
@@ -10,12 +9,12 @@ using Microsoft.AspNetCore.Components.Web;
 namespace Blazor.WorkflowEditor {
 
     public partial class Service : IDisposable {
-        private System.Activities.Activity activity = default!;
-        private Diagram designer = default!;
-        private Action updateState = default!;
-        private List<ActivityDesignerPair> items = new();
-        private List<ActivityDesignerPair> selectedItems = new();
-        private List<(ActivityDesignerPair, ActivityDesignerPair)> selectedLinks = new();
+        private ActivityBuilder activityBuilder = default!;
+        private readonly Diagram designer = default!;
+        private readonly Action updateState = default!;
+        private readonly List<ActivityDesignerPair> items = new();
+        private readonly List<ActivityDesignerPair> selectedItems = new();
+        private readonly List<(ActivityDesignerPair, ActivityDesignerPair)> selectedLinks = new();
 
         public IEnumerable<ActivityDesignerPair> Items => items;
         public IEnumerable<ActivityDesignerPair> SelectedItems => selectedItems;
@@ -36,8 +35,6 @@ namespace Blazor.WorkflowEditor {
             this.designer.MouseUp += mouseUp;
             this.designer.PanChanged += panChanged;
             this.designer.ZoomChanged += zoomChanged;
-
-            this.Path.CollectionChanged += pathChanged;
 
             this.updateState = updateState;
         }
@@ -62,7 +59,6 @@ namespace Blazor.WorkflowEditor {
             //Remove activity in parent
             Path.Last()?.Reference?.Node?.RemoveChild(item.Activity);
 
-
             selectedItems.Remove(item);
             items.Remove(item);
         }
@@ -82,39 +78,33 @@ namespace Blazor.WorkflowEditor {
                 return (false, default!);
 
             var activity = activityObject as System.Activities.Activity;
-            this.activity ??= activity!;
-
             var result = addActivity(activity!);
 
-            var lastNode = Path.Last()?.Reference?.Node;
-            if (lastNode != null)
-                lastNode.AddChild(result);
+            var lastNode = Path.LastOrDefault()?.Reference?.Node;
+            lastNode?.AddChild(result);
 
             return (true, result);
         }
 
-        public System.Activities.Activity GetActivity() {
-            return activity;
+        public ActivityBuilder GetActivityBuilder() {
+            return this.activityBuilder;
         }
 
-        public void SetActivity(System.Activities.Activity activity) {
-            this.activity = activity;
+        public void SetActivityBuilder(ActivityBuilder activityBuilder) {
+            this.activityBuilder = activityBuilder;
 
-            //read in/out arguments
-            if (activity is IDynamicActivity dynamicActivity) {
-                foreach (var property in dynamicActivity.Properties) {
-                    Variable variable = new() {
-                        Activity = activity,
-                        Name = property.Name,
-                        Type = property.Type,
-                        DefaultValue = property.Value
-                    };
-                    Variables.Add(variable);
-                }
-            }
+            var da = new DynamicActivity {
+                Implementation = () => activityBuilder.Implementation,
+                DisplayName = "ActivityBuilder"
+            };
+            activityBuilder.Properties.ToList().ForEach(p => da.Properties.Add(p));
+            activityBuilder.Constraints.ToList().ForEach(p => da.Constraints.Add(p));
+            activityBuilder.Attributes.ToList().ForEach(p => da.Attributes.Add(p));
+            var pair = addActivity(da);
 
-            Path.Add(PathItem.Root);
-
+            Path.Clear();
+            Path.Add(new(pair));
+            updatePath();
         }
 
         public void Open(Activity.DefaultNode node) {
@@ -123,6 +113,8 @@ namespace Blazor.WorkflowEditor {
                 return;
 
             Path.Add(new PathItem(item));
+            updatePath();
+
         }
 
         public void OpenPath(PathItem pathItem) {
@@ -131,19 +123,28 @@ namespace Blazor.WorkflowEditor {
 
             while (Path.Last() != pathItem)
                 Path.RemoveAt(Path.Count - 1);
+
+            updatePath();
         }
 
         public bool CheckAddActivity(Type activityType) {
-            //if (topActivity == null)
-            //    return true;
+            if (activityBuilder?.Implementation == null || activityType == null)
+                return false;
+
+            var last = Path.Last();
+            if (last.Reference == null)
+                return false;
+
+            if (last.Reference.Node.IsContainer == false)
+                return false;
 
             return true;
         }
 
-
         internal LinkModel LinkFromTo(ActivityDesignerPair from, ActivityDesignerPair to) {
-            var linkModel = new LinkModel(from.Node.OutcomingPort, to.Node.IncomingPort);
-            linkModel.TargetMarker = LinkMarker.Arrow;
+            var linkModel = new LinkModel(from.Node.OutcomingPort, to.Node.IncomingPort) {
+                TargetMarker = LinkMarker.Arrow
+            };
             designer.Links.Add(linkModel);
             return linkModel;
         }
@@ -216,60 +217,28 @@ namespace Blazor.WorkflowEditor {
             //throw new NotImplementedException();
         }
 
-        private void pathChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
-            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add) {
-                var items = e.NewItems!.OfType<PathItem>();
-                foreach (var newItem in items) {
-                    var node = newItem.Reference?.Node;
-                    if (node == null)
-                        continue;
+        private void updatePath() {
+            //TODO: for variable try use
+            //System.Activities.ScopeUtils.GetLocals(this Activity activity) 
 
-                    foreach (var _var in node.GetVariables()) {
-                        Variable variable = new() {
-                            Activity = newItem.Reference!.Activity,
-                            Name = _var.Name,
-                            Type = _var.Type,
-                            DefaultValue = _var.Default
-                        };
-                        Variables.Add(variable);
-                    }
+            this.designer.Nodes.Clear();
 
-                }
+            this.selectedItems.Clear();
+            this.selectedLinks.Clear();
 
-                load(items.Last()?.Reference);
-            }
+            Variables.Clear();
+            foreach (var item in Path.SelectMany(p => p.Node.GetVariables()))
+                Variables.Add(item);
 
-            if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Remove) {
-                var variablesForRemove = (from old in e.OldItems!.OfType<PathItem>()
-                                          join variable in this.Variables on old?.Reference?.Activity equals variable.Activity
-                                          where !variable.IsArgument
-                                          select variable).ToList();
-                variablesForRemove.ForEach(p => this.Variables.Remove(p));
-
-                load(Path.Last().Reference);
-            }
+            Path.Last().Reference.Node.LoadChilds(addActivity);
 
             updateState();
 
         }
 
-        private void load(ActivityDesignerPair? activityDesignerPair) {
-            designer.Nodes.Clear();
-
-            this.selectedItems.Clear();
-            this.selectedLinks.Clear();
-
-            if (activityDesignerPair is not null)
-                activityDesignerPair.Node.LoadChilds(addActivity);
-            else
-                addActivity(activity);
-        }
-
         private ActivityDesignerPair addActivity(System.Activities.Activity activity) {
-            if (this.activity == null)
-                this.activity = activity!;
 
-            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
             foreach (var assembly in assemblies) {
                 foreach (Type type in assembly.GetTypes()) {
                     DefaultNode? node = null;
@@ -300,7 +269,7 @@ namespace Blazor.WorkflowEditor {
                     }
                 }
             }
-            return null;
+            throw new NotSupportedException();
         }
     }
 

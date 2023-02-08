@@ -1,17 +1,21 @@
-﻿namespace Blazor.WorkflowEditor {
+﻿using Blazor.WorkflowEditor.Activity;
+
+namespace Blazor.WorkflowEditor {
     public class PathItem {
-        public static PathItem Root => new();
+        readonly ActivityDesignerPair reference;
 
-        public string Name => Reference?.Activity?.DisplayName ?? "root";
-        public ActivityDesignerPair? Reference { get; set; }
+        public ActivityDesignerPair Reference => reference;
+        public System.Activities.Activity Activity => reference.Activity;
+        public DefaultNode Node => reference.Node;
 
-        private PathItem() { }
+        public string Name => reference.Activity.DisplayName;
 
         public PathItem(ActivityDesignerPair reference) {
-            Reference = reference;
+            if (reference is null) {
+                throw new ArgumentNullException(nameof(reference));
+            }
+            this.reference = reference;
         }
-
     }
-
 
 }

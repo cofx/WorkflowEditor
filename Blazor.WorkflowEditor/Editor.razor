@@ -1,4 +1,7 @@
 ﻿@using Blazor.WorkflowEditor.Components
+@using System.Activities;
+@using System.Xaml;
+@using System.Text;
 @implements IDisposable
 
 
@@ -18,45 +21,45 @@
                     @if (!toolboxCollapsed)
                     {
 
-                        <div class="col-11">
-                            <div class="input-group">
-                                <input type="text" class="form-control" @bind="toolboxFilter">
-                                <button type="button" class="btn" @onclick="()=>toolboxFilter=string.Empty">
-                                    <span class="oi oi-x text-primary" style="align-self: center;"></span>
-                                </button>
-                            </div>
+                    <div class="col-11">
+                        <div class="input-group">
+                            <input type="text" class="form-control" @bind="toolboxFilter">
+                            <button type="button" class="btn" @onclick="()=>toolboxFilter=string.Empty">
+                                <span class="oi oi-x text-primary" style="align-self: center;"></span>
+                            </button>
                         </div>
-                    }
-                </div>
+                    </div>
+                }
             </div>
-            @if (!toolboxCollapsed)
-            {
-                <ul class="groups list-unstyled">
-                    @foreach (var group in FilterdToolBoxGroups)
-                    {
-                        <li class="groupItem">
-                            <div class="groupName" @onclick="()=>CollapseGroup(group.Name)">
-                                <span class="oi @GroupCollapsedIcon(group.Name)" aria-hidden="true"></span>
-                                @group.Name
-                            </div>
-                            <ul class="items list-unstyled @(HasGroupCollapsed(group.Name))">
-                                @foreach (var item in group.Items)
-                                {
-                                    <li @key="item" class="@((item.Image==null?"activityItemWithoutIcon":"activityItem"))"
-                            draggable="true" @ondragstart="() => OnDragStart(item)">
-                                        @if (item.Image != null)
-                                        {
-                                            <span class="@item.Image" aria-hidden="true"></span>
-                                        }
-                                        @item.Name
-                                    </li>
-                                }
-                            </ul>
-                        </li>
-                    }
-                </ul>
-            }
         </div>
+        @if (!toolboxCollapsed)
+        {
+            <ul class="groups list-unstyled">
+                @foreach (var group in FilterdToolBoxGroups)
+                {
+                    <li class="groupItem">
+                        <div class="groupName" @onclick="()=>CollapseGroup(group.Name)">
+                            <span class="oi @GroupCollapsedIcon(group.Name)" aria-hidden="true"></span>
+                            @group.Name
+                        </div>
+                        <ul class="items list-unstyled @(HasGroupCollapsed(group.Name))">
+                            @foreach (var item in group.Items)
+                            {
+                                <li @key="item" class="@((item.Image==null?"activityItemWithoutIcon":"activityItem"))"
+                        draggable="true" @ondragstart="() => OnDragStart(item)"  @ondragenter="() => OnDragEnter(item)"  @ondragenter="() => OnDragEnter(item)">
+                                    @if (item.Image != null)
+                                    {
+                                        <span class="@item.Image" aria-hidden="true"></span>
+                                    }
+                                    @item.Name
+                                </li>
+                            }
+                        </ul>
+                    </li>
+                }
+            </ul>
+        }
+    </div>
 
         <div class="diagram-editor">
             <div class="diagram-path">
@@ -71,15 +74,15 @@
                 </nav>
             </div>
 
-            <div class="diagram-main">
-                <div class="diagram" ondragover="event.preventDefault();" @ondragover:preventDefault @ondrop="OnDrop">
-                    <CascadingValue Value="designer">
-                        <CascadingValue Value="service">
-                            <DiagramCanvas></DiagramCanvas>
-                        </CascadingValue>
+        <div class="diagram-main">
+            <div class="@diagramStyle" ondragover="event.preventDefault();" @ondragover:preventDefault @ondrop="OnDrop">
+                <CascadingValue Value="designer">
+                    <CascadingValue Value="service">
+                        <DiagramCanvas></DiagramCanvas>
                     </CascadingValue>
-                </div>
+                </CascadingValue>
             </div>
+        </div>
 
             <div class="variables">
                 <VariablesPanelComponent Service="service"></VariablesPanelComponent>
@@ -108,6 +111,8 @@
     private bool toolboxCollapsed = false;
     private int toolboxWidth = 36;
     private string toolboxStyle = "";
+
+    private string diagramStyle = "diagram";
 
     private IEnumerable<ToolBoxGroup> FilterdToolBoxGroups
     {
@@ -171,13 +176,23 @@
 
     private void OnDragStart(ToolBoxItem key)
     {
+        if (service.CheckAddActivity(key.TypeOfActivity) == false)
+            return;
+
         draggedToolboxItem = key;
+    }
+
+    private void OnDragEnter(ToolBoxItem key)
+    {
+        if (service.CheckAddActivity(key.TypeOfActivity) == false)
+            return;
     }
 
     private async void OnDrop(DragEventArgs e)
     {
         if (draggedToolboxItem == null)
             return;
+
         if (draggedToolboxItem.TypeOfActivity.IsGenericType)
         {
             if (genericTypeSelectModal == null) return;
@@ -207,19 +222,42 @@
 
     public void Edit(System.Activities.Activity source)
     {
-        service.SetActivity(source);
+        var ab = new ActivityBuilder() { Implementation = source };
+        service.SetActivityBuilder(ab);
+    }
+
+    public void New()
+    {
+        var ab = new ActivityBuilder() { Implementation = new System.Activities.Statements.Sequence() };
+        service.SetActivityBuilder(ab);
     }
 
     public void Load(string source)
     {
-        var activity = (System.Activities.Activity)System.Xaml.XamlServices.Parse(source);
-        service.SetActivity(activity);
+        var xr = new StringReader(source);
+        var br = System.Activities.XamlIntegration.ActivityXamlServices.CreateBuilderReader(new XamlXmlReader(xr));
+        var ab = XamlServices.Load(br) switch {
+            (ActivityBuilder _ab) => _ab,
+            (System.Activities.Activity _a) => new ActivityBuilder() { Implementation = _a },
+            _ => throw new NotSupportedException()
+        };
+
+ 
+        //TODO add validation info
+        //var validationResults = System.Activities.Validation.ActivityValidationServices.Validate(ab.Implementation);
+
+        service.SetActivityBuilder(ab);
     }
 
     public string Save()
     {
-        var activity = service.GetActivity();
-        return System.Xaml.XamlServices.Save(activity);
+        //var activity = service.GetActivityBuilder();
+        //System.Xaml.XamlServices.Save(activity);
+
+        var sb = new StringBuilder();
+        var xw = System.Activities.XamlIntegration.ActivityXamlServices.CreateBuilderWriter(new XamlXmlWriter(new StringWriter(sb), new XamlSchemaContext()));
+        XamlServices.Save(xw, service.GetActivityBuilder());
+        return sb.ToString();
     }
 
     public void OpenPath(PathItem pathItem)
