@@ -46,7 +46,7 @@
                             @foreach (var item in group.Items)
                             {
                                 <li @key="item" class="@((item.Image==null?"activityItemWithoutIcon":"activityItem"))"
-                        draggable="true" @ondragstart="() => OnDragStart(item)"  @ondragenter="() => OnDragEnter(item)"  @ondragenter="() => OnDragEnter(item)">
+                        draggable="true" @ondragstart="() => OnDragStart(item)"  @ondragenter="() => OnDragEnter(item)">
                                     @if (item.Image != null)
                                     {
                                         <span class="@item.Image" aria-hidden="true"></span>

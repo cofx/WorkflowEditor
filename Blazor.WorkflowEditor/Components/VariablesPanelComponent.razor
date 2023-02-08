@@ -184,7 +184,8 @@
       variable.Name =modal?.VariableName ?? "";
       variable.DefaultValue = defaultValue;
       variable.Type = modal?.BuildedType ?? typeof(object);
-      variable.Activity = Service?.GetActivity();
+// set variable activity
+      variable.Activity = null;// Service?.GetActivity();
       Service?.Variables.Add(variable);
     }
     StateHasChanged();
