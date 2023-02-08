@@ -1,4 +1,7 @@
 ﻿@using Blazor.WorkflowEditor.Components
+@using System.Activities;
+@using System.Xaml;
+@using System.Text;
 @implements IDisposable
 
 <div class="editor">
@@ -320,27 +323,42 @@
 
     public void Edit(System.Activities.Activity source)
     {
-        service.SetActivity(source);
+        var ab = new ActivityBuilder() { Implementation = source };
+        service.SetActivityBuilder(ab);
     }
 
     public void New()
     {
-        service.New();
+        var ab = new ActivityBuilder() { Implementation = new System.Activities.Statements.Sequence() };
+        service.SetActivityBuilder(ab);
     }
 
     public void Load(string source)
     {
-        var activity = (System.Activities.Activity)System.Xaml.XamlServices.Parse(source);
-        //TODO add validation info
-        var validationResults = System.Activities.Validation.ActivityValidationServices.Validate(activity);
+        var xr = new StringReader(source);
+        var br = System.Activities.XamlIntegration.ActivityXamlServices.CreateBuilderReader(new XamlXmlReader(xr));
+        var ab = XamlServices.Load(br) switch {
+            (ActivityBuilder _ab) => _ab,
+            (System.Activities.Activity _a) => new ActivityBuilder() { Implementation = _a },
+            _ => throw new NotSupportedException()
+        };
 
-        service.SetActivity(activity);
+ 
+        //TODO add validation info
+        //var validationResults = System.Activities.Validation.ActivityValidationServices.Validate(ab.Implementation);
+
+        service.SetActivityBuilder(ab);
     }
 
     public string Save()
     {
-        var activity = service.GetActivity();
-        return System.Xaml.XamlServices.Save(activity);
+        //var activity = service.GetActivityBuilder();
+        //System.Xaml.XamlServices.Save(activity);
+
+        var sb = new StringBuilder();
+        var xw = System.Activities.XamlIntegration.ActivityXamlServices.CreateBuilderWriter(new XamlXmlWriter(new StringWriter(sb), new XamlSchemaContext()));
+        XamlServices.Save(xw, service.GetActivityBuilder());
+        return sb.ToString();
     }
 
     public void OpenPath(PathItem pathItem)

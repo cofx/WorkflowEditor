@@ -1,4 +1,5 @@
 ﻿namespace Blazor.WorkflowEditor {
+
     public class Variable {
 
         /// <summary>
@@ -24,6 +25,5 @@
             }
         }
     }
-
 
 }
