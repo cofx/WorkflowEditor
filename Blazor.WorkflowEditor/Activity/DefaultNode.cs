@@ -1,11 +1,11 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Activities;
 using Blazor.Diagrams.Core.Geometry;
 using Blazor.Diagrams.Core.Models;
 
 namespace Blazor.WorkflowEditor.Activity;
 
 public class DefaultNode : NodeModel {
-    private Size defaultSize = new Size(250, 114);
+    private readonly Size defaultSize = new(250, 114);
 
     //    internal readonly Service service;
     public readonly Service service;
@@ -39,7 +39,7 @@ public class DefaultNode : NodeModel {
 
     public string CssClass {
         get {
-            var result = String.Empty;
+            var result = string.Empty;
             if (base.Selected)
                 result += " isSelected";
             if (this.IsContainer)
@@ -54,13 +54,10 @@ public class DefaultNode : NodeModel {
     public PortModel IncomingPort { get; private set; }
     public PortModel OutcomingPort { get; private set; }
 
-    private PortModel leftPort = default!;
-    private PortModel topPort = default!;
-    private PortModel rightPort = default!;
-    private PortModel bottomPort = default!;
-
-    //for save/restore state
-    private State.ViewState? viewState;
+    private readonly PortModel leftPort = default!;
+    private readonly PortModel topPort = default!;
+    private readonly PortModel rightPort = default!;
+    private readonly PortModel bottomPort = default!;
 
     public DefaultNode(Service service, System.Activities.Activity activity) : base() {
         this.service = service;
@@ -82,15 +79,24 @@ public class DefaultNode : NodeModel {
 
     }
 
-    public bool HasViewState => viewState != null && !viewState.IsEmpty();
+    public bool HasViewState => State.Designer.HasProperty(activity);
 
     public bool RestoreViewState() {
 
-        this.viewState = Blazor.WorkflowEditor.Activity.State.ViewStateStore.Get(activity);
+        var centerX = State.Designer.GetCenterX(activity);
+        var centerY = State.Designer.GetCenterY(activity);
+        if (centerX != null && centerY != null)
+            this.CenterPosition = new Point((double)centerX, (double)centerY);
+        else
+            this.CenterPosition = new Diagrams.Core.Geometry.Point(
+                this.service.DiagramContainer!.Width / 2,
+                this.service.DiagramContainer!.Height / 2);
+        /*
+        this.viewState = Blazor.WorkflowEditor.Activity.State.Designer.Get(activity);
 
         if (this.viewState == null) {
             this.viewState = new();
-            Blazor.WorkflowEditor.Activity.State.ViewStateStore.Set(activity, this.viewState);
+            Blazor.WorkflowEditor.Activity.State.Designer.Set(activity, this.viewState);
         }
 
         if (viewState.IsEmpty()) {
@@ -143,22 +149,19 @@ public class DefaultNode : NodeModel {
             };
             SetOutcoming(_outcomingPort);
         }
-
+        */
         return true;
     }
 
     public void UpdateViewState() {
-        bool sizeCompare(Blazor.Diagrams.Core.Geometry.Size sourse, Blazor.Diagrams.Core.Geometry.Size destination) =>
+        static bool sizeCompare(Blazor.Diagrams.Core.Geometry.Size sourse, Blazor.Diagrams.Core.Geometry.Size destination) =>
             Math.Abs(sourse.Width - destination.Width) < 1 && Math.Abs(sourse.Height - destination.Height) < 1;
 
-        //This is tempory code...
+        State.Designer.SetCenterX(activity, (int?)this.CenterPosition.X);
+        State.Designer.SetCenterY(activity, (int?)this.CenterPosition.Y);
 
-        if (viewState == null)
-            return;
 
-        this.viewState.CenterX = (int)this.CenterPosition.X;
-        this.viewState.CenterY = (int)this.CenterPosition.Y;
-
+        /*
         if (this.Size != null && sizeCompare(this.Size, this.defaultSize) == false) {
             this.viewState.Widht = (int)this.Size.Width;
             this.viewState.Height = (int)this.Size.Height;
@@ -194,6 +197,7 @@ public class DefaultNode : NodeModel {
             this.viewState.OffcetX = null;
             this.viewState.OffcetY = null;
         }
+        */
     }
 
     public void SetOutcoming(PortModel port) {
@@ -214,12 +218,39 @@ public class DefaultNode : NodeModel {
         this.RefreshAll();
     }
 
-    public virtual Collection<System.Activities.Variable> GetVariables() {
-        return new Collection<System.Activities.Variable>();
+    protected IEnumerable<Variable> GetVariables(IEnumerable<System.Activities.Variable> source) {
+        var result = new List<Variable>();
+        foreach (var property in source) {
+            Variable variable = new() {
+                Activity = activity,
+                Name = property.Name,
+                Type = property.Type,
+                DefaultValue = property.Default
+            };
+            result.Add(variable);
+        }
+        return result;
+    }
+
+    protected IEnumerable<Variable> GetVariables(IEnumerable<DynamicActivityProperty> source) {
+        var result = new List<Variable>();
+        foreach (var property in source) {
+            Variable variable = new() {
+                Activity = activity,
+                Name = property.Name,
+                Type = property.Type,
+                DefaultValue = property.Value
+            };
+            result.Add(variable);
+        }
+        return result;
+    }
+
+    public virtual IEnumerable<Variable> GetVariables() {
+        return Enumerable.Empty<Variable>();
     }
 
     public virtual void LoadChilds(Func<System.Activities.Activity, ActivityDesignerPair> addActivity) {
-
 
     }
     public virtual void AddChild(ActivityDesignerPair source) {

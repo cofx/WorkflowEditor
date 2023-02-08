@@ -17,5 +17,10 @@ public class DynamicActivityNode : DefaultNode {
         if (activity != null)
             addActivity(activity);
     }
+
+    public override IEnumerable<Variable> GetVariables() {
+        return GetVariables(dynamicActivity.Properties);
+    }
+
 }
 

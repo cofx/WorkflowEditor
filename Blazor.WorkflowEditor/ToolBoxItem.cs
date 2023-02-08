@@ -5,5 +5,3 @@ public class ToolBoxItem {
     public string? Image { get; set; }
     public Type TypeOfActivity { get; set; } = default!;
 }
-
-
