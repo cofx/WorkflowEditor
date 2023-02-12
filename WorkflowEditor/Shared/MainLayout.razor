@@ -1,4 +1,5 @@
 ﻿@using System.Activities
+@using System.Reflection
 @using System.Text
 @inherits LayoutComponentBase
 @inject IJSRuntime JS
@@ -83,6 +84,18 @@
         TypeCollection.Add(Type.GetType("System.Int32"));
         TypeCollection.Add(Type.GetType("System.String"));
         TypeCollection.Add(Type.GetType("System.Boolean"));
+
+        Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+        var names = new string[]{
+            ".List`1[T]"
+        };
+        foreach (var assembly in assemblies)
+        {
+            var types = assembly.GetTypes().Where(t=>names.FirstOrDefault(p=>t.ToString().IndexOf(p)!=-1)!=null).ToArray();
+            if(types.Count()>0){
+                TypeCollection.AddRange(types);
+            }
+        }
     }
 
     protected override void OnAfterRender(bool firstRender)

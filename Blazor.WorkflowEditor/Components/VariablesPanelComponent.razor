@@ -1,6 +1,5 @@
 @using System.Activities;
 @using Blazor.WorkflowEditor;
-@using System.Reflection
 @implements IDisposable
 
 <div class="variables-table">
@@ -184,26 +183,15 @@
       variable.Name =modal?.VariableName ?? "";
       variable.DefaultValue = defaultValue;
       variable.Type = modal?.BuildedType ?? typeof(object);
-// set variable activity
-      variable.Activity = null;// Service?.GetActivity();
+      variable.Activity = Service?.Path.Last().Activity!;
       Service?.Variables.Add(variable);
     }
     StateHasChanged();
   }
 
-    protected override void OnInitialized()
+  protected override void OnInitialized()
   {
     base.OnInitialized();
-    Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
-    if(TypeCollection==null){
-      TypeCollection = new();
-    }else{
-      TypeCollection.Clear();
-    }
-    foreach (var assembly in assemblies)
-    {
-      TypeCollection.AddRange(assembly.GetTypes());
-    }    
   }
 
 
