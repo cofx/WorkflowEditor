@@ -11,9 +11,13 @@
     {
       foreach (var item in GenericTypes)
       {
-        <TypeSelectComponent @key="item" TypeCollection="Types" Label="@($"Generic type <{item.Key}>")"
+        <!-- <TypeSelectComponent @key="item" TypeCollection="TypeCollection" Label="@($"Generic type <{item.Key}>")"
       @bind-Value="item.Value">
-        </TypeSelectComponent>
+        </TypeSelectComponent> -->
+
+        <VariableTypeConstructorComponent @key="item" @ref="item.ObjRef" TypeCollection="TypeCollection" VariableType="item.Value">
+        </VariableTypeConstructorComponent>
+
       }
     }
   </Body>
@@ -27,13 +31,16 @@
   {
     public string Key { get; set; } = string.Empty;
     public Type? Value { get; set; } = null;
+    public object? ObjRef { get; set; } = null;
   }
 
   [Parameter]
-  public List<Type>? Types { get; set; }
+  public List<Type>? TypeCollection { get; set; }
 
   [Parameter]
   public List<GenericTypeDescription>? GenericTypes { get; set; }
+
+  public List<Type>? BuildedTypes { get=>GenericTypes?.Select(s=>((VariableTypeConstructorComponent)s.ObjRef).BuildedType).ToList(); }
 
   public ModalResult ModalResult { get => Modal!.ModalResult; }
 }

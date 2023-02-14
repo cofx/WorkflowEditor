@@ -14,8 +14,13 @@
       </div>
     </div>
 
-    <VariableTypeConstructorComponent @ref="_objRef" TypeCollection="TypeCollection" VariableType="VariableType">
-    </VariableTypeConstructorComponent>
+    <div class="mb-3 row">
+      <label for="inputType" class="col-4 col-form-type">Type</label>
+      <div class="col-8">
+        <VariableTypeConstructorComponent @ref="_objRef" TypeCollection="TypeCollection" VariableType="VariableType">
+        </VariableTypeConstructorComponent>
+      </div>
+    </div>
 
     <div class="mb-3 row">
       <label for="inputDefaultValue" class="col-4 col-form-label">DefaultValue</label>

@@ -2,15 +2,14 @@
 @using System.Runtime.CompilerServices
 @implements IDisposable
 <div class="row">
-  <div class="col">
-    <div class="">
-      <label class="col-form-label">@(Value.Value?.ToString()??"Select type")</label>
-      @if (Value.Value != null)
-      {
+  @if (Value.Value != null)
+  {
+    <div class="col">
+      <div class="">
+        <label class="col-form-label">@Value.Value?.ToString()</label>
         <button type="button" class="btn" @onclick="()=>Value.Value=null">
           <span class="oi oi-x text-primary" aria-hidden="true"></span>
         </button>
-      }
     </div>
     @if (Value.Childs.Count > 0)
     {
@@ -25,10 +24,11 @@
         }
       </ul>
     }
-  </div>
+    </div>
+  }
   @if (Value.Value == null)
   {
-    <div class="col-8">
+    <div class="@(Value.Value != null?"col-8":"")">
       <TypeSelectComponent TypeCollection="TypeCollection" @bind-Value="Value.Value"></TypeSelectComponent>
     </div>
   }

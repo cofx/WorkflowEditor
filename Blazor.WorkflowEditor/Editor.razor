@@ -6,10 +6,8 @@
 
 
 <div class="editor">
-    <ModalService @ref="_modalServiceCv"></ModalService>
-    <CascadingValue Value="_modalServiceCv">
-        <GenericTypeSelectModal @ref="genericTypeSelectModal" Types="TypeCollection"></GenericTypeSelectModal>
-
+    <ModalService @ref="_modalService"></ModalService>
+    <CascadingValue Value="_modalService">
         <div class="toolbox" style="@toolboxStyle">
             <div class="caption">
                 <div class="row">
@@ -85,17 +83,14 @@
         </div>
 
             <div class="variables">
-                <VariablesPanelComponent Service="service"></VariablesPanelComponent>
+                <VariablesPanelComponent Service="service" TypeCollection="TypeCollection"></VariablesPanelComponent>
             </div>
         </div>
     </CascadingValue>
 </div>
 
 @code {
-    private ModalService? _modalServiceCv { get; set; }
-
-
-    private GenericTypeSelectModal? genericTypeSelectModal = new GenericTypeSelectModal();
+    private ModalService? _modalService { get; set; }
 
     private Diagram designer { get; set; } = default!;
     private ToolBoxItem? draggedToolboxItem;
@@ -195,20 +190,23 @@
 
         if (draggedToolboxItem.TypeOfActivity.IsGenericType)
         {
-            if (genericTypeSelectModal == null) return;
-
-            genericTypeSelectModal.GenericTypes = draggedToolboxItem.TypeOfActivity.GetGenericArguments().Where(t =>
-            t.IsGenericParameter).Select(s => new GenericTypeSelectModal.GenericTypeDescription { Key = s.ToString() }).ToList();
-            var modalResult = await genericTypeSelectModal.Show();
-            if (modalResult != ModalResult.Applied) return;
-
-
-            (bool hasAdded, var result) =
-            service.AddActivity(draggedToolboxItem.TypeOfActivity, genericTypeSelectModal.GenericTypes.Select(s =>
-            s.Value).ToArray()!);
-            if (!hasAdded) return;
-            var position = designer.GetRelativeMousePoint(e.ClientX, e.ClientY);
-            result.Node.CenterPosition = position;
+            var genericTypes = draggedToolboxItem.TypeOfActivity
+                .GetGenericArguments()
+                .Where(t => t.IsGenericParameter)
+                .Select(s => new GenericTypeSelectModal.GenericTypeDescription { Key = s.ToString() })
+                .ToList();
+            var modal = await   _modalService.ShowModal<GenericTypeSelectModal>(new (){
+                {"GenericTypes",genericTypes},
+                {"TypeCollection",TypeCollection??new List<Type>()}
+            });
+            if(modal.ModalResult==ModalResult.Applied){
+                (bool hasAdded, var result) =
+                service.AddActivity(draggedToolboxItem.TypeOfActivity, modal.BuildedTypes.ToArray()!);
+                if (!hasAdded) return;
+                var position = designer.GetRelativeMousePoint(e.ClientX, e.ClientY);
+                result.Node.CenterPosition = position;
+            }
+            StateHasChanged();
         }
         else
         {
