@@ -1,4 +1,4 @@
-using System.Activities.Statements;
+﻿using System.Activities.Statements;
 
 namespace Blazor.WorkflowEditor.Activity.Statements;
 
@@ -16,7 +16,7 @@ public class WriteLineNode : DefaultNode {
             return (activity.Text.Expression as System.Activities.Expressions.Literal<string>)!.Value;
         }
         set {
-            (activity.Text.Expression as System.Activities.Expressions.Literal<string>)!.Value = value;
+            (activity.Text.Expression as System.Activities.Expressions.Literal<string>)!.Value = value ?? string.Empty;
         }
     }
 }

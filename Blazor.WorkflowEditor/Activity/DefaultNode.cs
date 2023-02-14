@@ -154,8 +154,10 @@ public class DefaultNode : NodeModel {
     }
 
     public void UpdateViewState() {
+#pragma warning disable CS8321 // The local function 'sizeCompare' is declared but never used
         static bool sizeCompare(Blazor.Diagrams.Core.Geometry.Size sourse, Blazor.Diagrams.Core.Geometry.Size destination) =>
             Math.Abs(sourse.Width - destination.Width) < 1 && Math.Abs(sourse.Height - destination.Height) < 1;
+#pragma warning restore CS8321 // The local function 'sizeCompare' is declared but never used
 
         State.Designer.SetCenterX(activity, (int?)this.CenterPosition.X);
         State.Designer.SetCenterY(activity, (int?)this.CenterPosition.Y);
