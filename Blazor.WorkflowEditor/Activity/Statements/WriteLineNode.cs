@@ -8,6 +8,9 @@ public class WriteLineNode : DefaultNode {
 
     public WriteLineNode(Service service, System.Activities.Statements.WriteLine activity) : base(service, activity) {
         this.activity = activity;
+        if (this.activity.Text == null) {
+            this.activity.Text = new System.Activities.InArgument<string>(string.Empty);
+        }
     }
 
     //TODO: ..\CoreWF\src\Test\TestCases.Workflows\ExpressionTests.cs 

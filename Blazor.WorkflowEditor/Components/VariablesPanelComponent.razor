@@ -1,8 +1,9 @@
 @using System.Activities;
 @using Blazor.WorkflowEditor;
+@using Blazor.WorkflowEditor.Activity;
 @implements IDisposable
 
-<div class="variables-table">
+<div class="we-variables-table">
   <table class="table-sm caption-top w-100">
     <caption class="clear-fix">
       Variables
@@ -78,80 +79,84 @@
 
 
 @code {
-  [CascadingParameter]
-  private ModalService? _modalService{get;set;}
+    [CascadingParameter]
+    private ModalService? _modalService{get;set;}
 
-  public class GroupedActivityVariable
-  {
-    public System.Activities.Activity? Activity { get; set; }
-    public List<Blazor.WorkflowEditor.Variable> Variables { get; set; } = new();
-  }
-
-  private Dictionary<string, bool> _collapsedGroup = new();
-  private bool _collapsed { get; set; } = false;
-
-  private List<GroupedActivityVariable> _groupedVariables
-  {
-    get
+    public class GroupedActivityVariable
     {
-      List<GroupedActivityVariable> result = new List<GroupedActivityVariable>();
-      if (Service == null) return result;
-      foreach (var item in Service.Variables)
-      {
-        var group = result.FirstOrDefault(p => p.Activity == item.Activity);
-        if (group == null)
+        public System.Activities.Activity? Activity { get; set; }
+        public List<Blazor.WorkflowEditor.Variable> Variables { get; set; } = new();
+    }
+
+    private Dictionary<string, bool> _collapsedGroup = new();
+    private bool _collapsed { get; set; } = false;
+
+    private List<GroupedActivityVariable> _groupedVariables
+    {
+        get
         {
-          group = new GroupedActivityVariable
+            List<GroupedActivityVariable> result = new List<GroupedActivityVariable>();
+            if (Service == null) return result;
+            foreach (var item in Service.Variables)
+            {
+                var group = result.FirstOrDefault(p => p.Activity == item.Activity);
+                if (group == null)
+                {
+                    group = new GroupedActivityVariable
           {
             Activity = item.Activity,
             Variables = new List<Blazor.WorkflowEditor.Variable>()
           };
-          result.Add(group);
+                    result.Add(group);
+                }
+                group.Variables.Add(item);
+                if (!_collapsedGroup.ContainsKey($"{group?.Activity?.DisplayName ?? ""}"))
+                {
+                    _collapsedGroup.Add($"{group?.Activity?.DisplayName ?? ""}", false);
+                }
+            };
+            return result;
         }
-        group.Variables.Add(item);
-        if (!_collapsedGroup.ContainsKey($"{group?.Activity?.DisplayName ?? ""}"))
-        {
-          _collapsedGroup.Add($"{group?.Activity?.DisplayName ?? ""}", false);
+    }
+
+    [Parameter, EditorRequired]
+    public Service? Service { get; set; }
+
+    [Parameter]
+    public List<Type>? TypeCollection{get;set;}
+
+
+    private bool getCollapsedGroup(GroupedActivityVariable group){
+        return _collapsedGroup.ContainsKey($"{group?.Activity?.DisplayName ?? ""}")?_collapsedGroup[$"{group?.Activity?.DisplayName ?? ""}"]:false;
+    }
+
+    private void reversValueCollapsedGroup(GroupedActivityVariable group){
+        if(_collapsedGroup.ContainsKey($"{group?.Activity?.DisplayName ?? ""}")){
+            _collapsedGroup[$"{group?.Activity?.DisplayName ?? ""}"] = !_collapsedGroup[$"{group?.Activity?.DisplayName ?? ""}"];
         }
-      };
-      return result;
     }
-  }
 
-  [Parameter, EditorRequired]
-  public Service? Service { get; set; }
-
-  [Parameter]
-  public List<Type>? TypeCollection{get;set;}
-
-
-  private bool getCollapsedGroup(GroupedActivityVariable group){
-    return _collapsedGroup.ContainsKey($"{group?.Activity?.DisplayName ?? ""}")?_collapsedGroup[$"{group?.Activity?.DisplayName ?? ""}"]:false;
-  }
-
-  private void reversValueCollapsedGroup(GroupedActivityVariable group){
-    if(_collapsedGroup.ContainsKey($"{group?.Activity?.DisplayName ?? ""}")){
-      _collapsedGroup[$"{group?.Activity?.DisplayName ?? ""}"] = !_collapsedGroup[$"{group?.Activity?.DisplayName ?? ""}"];
-    }
-  }
-
-  private async void removeVariable(Blazor.WorkflowEditor.Variable variable){
-    if(_modalService==null)return;
-    var modal = await   _modalService.ShowModal<ConfirmationModal>(new (){
+    private async void removeVariable(Blazor.WorkflowEditor.Variable variable){
+        if(_modalService==null)return;
+        var modal = await   _modalService.ShowModal<ConfirmationModal>(new (){
       {"Title","Delete variable"},
       {"Message",$"Delete variable {variable.Name}?"},
       {"ApplyButtonText","Delete"},
     });
-    if(modal.ModalResult==ModalResult.Applied){
-      Service?.Variables.Remove(variable);
+        if(modal.ModalResult==ModalResult.Applied){
+            Service.RemoveVariable(
+                variable.Activity,
+                variable.Name);
+            Service.RefreshVariables();
+        }
+        StateHasChanged();
     }
-    StateHasChanged();
-  }
 
-  private  async void editVariable(Blazor.WorkflowEditor.Variable variable){
-    if(_modalService==null)return;
-    var defaultValue = variable.DefaultValue?.ToString() ?? "";
-    var modal = await   _modalService.ShowModal<VariableCreateModal>(new (){
+    private  async void editVariable(Blazor.WorkflowEditor.Variable variable){
+        if(_modalService==null)return;
+        var defaultValue = variable.DefaultValue?.ToString() ?? "";
+        var oldName = variable.Name;
+        var modal = await   _modalService.ShowModal<VariableCreateModal>(new (){
       {"Title","Edit variable"},
       {"ApplyButtonText","Apply"},
       {"TypeCollection",TypeCollection??new List<Type>()},
@@ -159,33 +164,50 @@
       {"DefaultValue",defaultValue},
       {"VariableType",variable.Type},
     });
-    if(modal.ModalResult==ModalResult.Applied){
-      variable.Name =modal?.VariableName ?? "";
-      variable.DefaultValue = defaultValue;
-      variable.Type = modal?.BuildedType ?? typeof(object);
-    }
-    StateHasChanged();
-  }
+        if(modal.ModalResult==ModalResult.Applied){
 
-  private  async void addVariable(){
-    Blazor.WorkflowEditor.Variable variable = new(); 
-    var defaultValue =  "";
-    if(_modalService==null)return;
-    var modal = await   _modalService.ShowModal<VariableCreateModal>(new (){
+            Service.UpdateVariable(
+                variable.Activity, 
+                oldName,
+                modal?.VariableName ?? string.Empty,
+                modal?.BuildedType ?? typeof(object), 
+                modal?.DefaultValue?? string.Empty);
+            Service.RefreshVariables();
+        }
+        StateHasChanged();
+    }
+
+    private  async void addVariable(){
+        Blazor.WorkflowEditor.Variable variable = new(); 
+        var defaultValue =  "";
+        if(_modalService==null)return;
+        var modal = await   _modalService.ShowModal<VariableCreateModal>(new (){
       {"Title","Add variable"},
       {"ApplyButtonText","Apply"},
       {"TypeCollection",TypeCollection??new List<Type>()},
       {"VariableName",variable.Name},
-      {"DefaultValue",defaultValue},
+      {"DefaultValue",variable.DefaultValue},
       {"VariableType",variable.Type},
     });
-    if(modal.ModalResult==ModalResult.Applied){
-      variable.Name =modal?.VariableName ?? "";
-      variable.DefaultValue = defaultValue;
-      variable.Type = modal?.BuildedType ?? typeof(object);
-      variable.Activity = Service?.Path.Last().Activity!;
+        if(modal.ModalResult==ModalResult.Applied){
 
-      Service?.Variables.Add(variable);
+            Service.AddVariable(
+                Service?.Path.Last().Activity!, 
+                modal?.VariableName ?? string.Empty,
+                modal?.BuildedType ?? typeof(object), 
+                modal?.DefaultValue?? string.Empty);
+            Service.RefreshVariables();
+/* 
+
+            if ((Service?.Path.Last().Activity as DynamicActivity) != null) {
+                (Service?.Path.Last().Activity as DynamicActivity).Properties.Add(new DynamicActivityProperty
+                {
+                    Name = variable.Name,
+                    Type = modal?.BuildedType ?? typeof(object),
+                    Value = variable.DefaultValue
+                });
+            }
+            */
     }
     StateHasChanged();
   }

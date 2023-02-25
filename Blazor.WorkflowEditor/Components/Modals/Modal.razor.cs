@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 
 namespace Blazor.WorkflowEditor.Components.Modals;
 
@@ -10,7 +10,7 @@ public enum ModalResult {
 }
 
 public partial class Modal : ComponentBase, IModal, IDisposable {
-    private TaskCompletionSource<ModalResult> _taskCompletionSource = new TaskCompletionSource<ModalResult>();
+    private TaskCompletionSource<ModalResult> _taskCompletionSource = new();
     private bool _isShowed = false;
     public bool IsShowed {
         get {
@@ -76,7 +76,9 @@ public partial class Modal : ComponentBase, IModal, IDisposable {
     }
     private void UpdateState(ModalResult result) {
         ModalResult = result;
-        _taskCompletionSource.SetResult(result);
+        if (!_taskCompletionSource.Task.IsCompleted) {
+            _taskCompletionSource.SetResult(result);
+        }
         IsShowed = false;
     }
 }

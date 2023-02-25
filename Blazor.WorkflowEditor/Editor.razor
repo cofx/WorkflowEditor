@@ -1,11 +1,11 @@
-﻿@using Blazor.WorkflowEditor.Components
+﻿@using Blazor.Diagrams;
+@using Blazor.WorkflowEditor.Components
 @using System.Activities;
 @using System.Xaml;
 @using System.Text;
 @implements IDisposable
 
-
-<div class="editor">
+<div class="we-editor">
     <ModalService @ref="_modalService"></ModalService>
     <CascadingValue Value="_modalService">
         <div class="toolbox" style="@toolboxStyle">
@@ -92,7 +92,7 @@
 @code {
     private ModalService? _modalService { get; set; }
 
-    private Diagram designer { get; set; } = default!;
+    public Diagram designer { get; set; } = default!;
     private ToolBoxItem? draggedToolboxItem;
     private Blazor.WorkflowEditor.Service service { get; set; } = default!;
 
@@ -157,7 +157,7 @@
         this.designer = new(options);
 
         this.service = new Service(this.designer, this.StateHasChanged);
-
+        
         foreach (var item in this.ToolBoxGroups.Where(p => p.Items.Count != 0))
         {
             collapsedGroups.Add(item.Name, false);

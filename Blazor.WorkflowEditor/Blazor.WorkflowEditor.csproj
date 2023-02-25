@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Razor">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
     <PropertyGroup>
         <TargetFramework>net7.0</TargetFramework>
@@ -7,7 +7,10 @@
     </PropertyGroup>
 
     <PropertyGroup>
+      <Version>1.0.0.1</Version>
       <NoWarn>1701;1702;IDE1006;IDE0073</NoWarn>
+      <IsPublishable>True</IsPublishable>
+      <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     </PropertyGroup>
 
     <ItemGroup>
@@ -21,5 +24,4 @@
         <PackageReference Include="Z.Blazor.Diagrams" Version="2.1.6" />
         <PackageReference Include="Z.Blazor.Diagrams.Core" Version="2.1.6" />
     </ItemGroup>
-
 </Project>
