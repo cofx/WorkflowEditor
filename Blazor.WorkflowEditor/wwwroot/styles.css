@@ -1,29 +1,30 @@
-﻿.diagram {
+﻿.we-diagram {
     background-color: burlywood
 }
 
-.custom-node {
+.we-custom-node {
     width: 250px;
     height: 114px;
 }
-.custom-node-extended {
+
+.we-custom-node-extended {
     width: 480px;
 }
 
-.custom-node .card {
+.we-custom-node .card {
     border: 3px solid transparent;
 }
 
-.custom-node .isSelected {
+.we-custom-node .isSelected {
     border-color: #0d6efd;
     z-index: 2147483646;
 }
 
-.custom-node .isSelected .port {
-    z-index: 2147483647;
-}
+    .we-custom-node .isSelected .port {
+        z-index: 2147483647;
+    }
 
-.custom-node .port {
+.we-custom-node .port {
     position: absolute;
     width: 20px;
     height: 20px;
@@ -35,26 +36,156 @@
     margin: -10px;
 }
 
-.custom-node .port.locked {
-    visibility: hidden;
+    .we-custom-node .port.locked {
+        visibility: hidden;
+    }
+
+    .we-custom-node .port.bottom {
+        bottom: 0px;
+        left: 50%;
+    }
+
+    .we-custom-node .port.top {
+        top: 0px;
+        left: 50%;
+    }
+
+    .we-custom-node .port.left {
+        left: 0px;
+        top: 50%;
+    }
+
+    .we-custom-node .port.right {
+        right: 0px;
+        top: 50%;
+    }
+
+.we-autocomplete {
+    position: relative;
 }
 
-.custom-node .port.bottom {
-    bottom: 0px;
-    left: 50%;
+    .we-autocomplete .options {
+        position: absolute;
+        top: 40px;
+        left: 0;
+        background: white;
+        width: 100%;
+        padding: 0;
+        z-index: 10;
+        border: 1px solid #ced4da;
+        border-radius: 0.5rem;
+        box-shadow: 0 30px 25px 8px rgba(0, 0, 0, 0.1);
+        max-height: 500px;
+        overflow: auto;
+    }
+
+    .we-autocomplete .option {
+        display: block;
+        padding: 0.25rem;
+    }
+
+    .we-autocomplete .option-filter {
+        display: block;
+        padding: 0.25rem;
+    }
+
+    .we-autocomplete .option .option-text {
+        padding: 0.25rem 0.5rem;
+    }
+
+    .we-autocomplete .option:hover {
+        background: #1E90FF;
+        color: #fff;
+    }
+
+    .we-autocomplete .option.disabled {
+        background-color: lightgrey;
+        cursor: not-allowed;
+    }
+
+        .we-autocomplete .option.disabled:hover {
+            background: lightgrey;
+            color: var(--bs-body);
+        }
+
+.we-editor {
+    display: flex;
+    height: 100%;
+    background-color: antiquewhite;
 }
 
-.custom-node .port.top {
-    top: 0px;
-    left: 50%;
+    .we-editor .toolbox {
+        flex: none;
+        width: 400px;
+    }
+
+    .we-editor .groupItem {
+        padding: 2px;
+    }
+
+        .we-editor .groupItem .groupName {
+            font-weight: bold;
+            cursor: default;
+        }
+
+        .we-editor .groupItem .activityItem {
+            cursor: move;
+            padding-left: 12px;
+        }
+
+        .we-editor .groupItem .activityItemWithoutIcon {
+            cursor: move;
+            padding-left: 30px;
+        }
+
+    .we-editor .diagram-editor {
+        flex: 2;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+        .we-editor .diagram-editor .diagram-path {
+            flex: none;
+            height: 24px;
+        }
+
+        .we-editor .diagram-editor .diagram-main {
+            flex: auto;
+        }
+
+            .we-editor .diagram-editor .diagram-main .diagram {
+                height: 100%;
+            }
+
+        .we-editor .diagram-editor .variables {
+            flex: none;
+        }
+
+
+
+.we-variables-table {
+    max-height: 500px;
+    overflow: auto;
 }
 
-.custom-node .port.left {
-    left: 0px;
-    top: 50%;
+.we-options {
+    width: 100%;
+    padding: 0;
 }
 
-.custom-node .port.right {
-    right: 0px;
-    top: 50%;
+.we-vtc-options .option {
+    display: block;
+    /* padding-left: 2rem; */
+}
+
+    .we-vtc-options .option .option-text {
+        padding: 0.25rem 0.5rem;
+    }
+
+
+.btn:focus,
+.btn:active {
+    outline: none !important;
+    box-shadow: none;
 }

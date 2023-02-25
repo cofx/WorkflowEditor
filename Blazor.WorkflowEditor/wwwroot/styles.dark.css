@@ -1,12 +1,12 @@
-.diagram {
+.we-diagram {
     background-color: #494949;
 }
 
-.custom-node .card {
+.we-custom-node .card {
     border: 1px solid darkgray;
 }
 
-.custom-node .isSelected {
+.we-custom-node .isSelected {
     border-color: white;
 }
 

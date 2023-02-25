@@ -1,15 +1,15 @@
 ﻿@using System.Diagnostics.CodeAnalysis
 
-<div class="@(!Node.IsExpanded?"custom-node":"custom-node-extended")">
+<div class="@(!Node.IsExpanded?"we-custom-node":"we-custom-node-extended")">
     <div class="card @Node.CssClass">
         @if (!Node.IsExpanded)
         {
             <div class="card-header">
-                <div class=" float-end">
+                <div class="float-end">
                     @if (Node.IsContainer)
                     {
                         <a href="" class="card-link" @onclick="@open" @onclick:preventDefault>
-                            <span class="oi oi-fullscreen-enter" @onclick="@open" aria-hidden="true"></span>
+                            <span class="oi oi-fullscreen-enter" aria-hidden="true"></span>
                         </a>
                     }
                     else

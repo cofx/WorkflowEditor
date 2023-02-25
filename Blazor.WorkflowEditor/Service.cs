@@ -231,7 +231,6 @@ namespace Blazor.WorkflowEditor {
                 Variables.Add(item);
 
             Path.Last().Reference.Node.LoadChilds(addActivity);
-
             updateState();
 
         }
@@ -271,6 +270,52 @@ namespace Blazor.WorkflowEditor {
             }
             throw new NotSupportedException();
         }
-    }
 
+        public void RefreshVariables() {
+            Variables.Clear();
+            foreach (var item in Path.SelectMany(p => p.Node.GetVariables()))
+                Variables.Add(item);
+        }
+
+        public virtual void AddVariable<TActivity>(TActivity activity, string name, Type type, string defaultValue) where TActivity : class {
+            var genType = typeof(System.Activities.Variable<>).MakeGenericType(type);
+            object?[] constructorParams;
+            try {
+                var defType = Convert.ChangeType(defaultValue, type);
+                constructorParams = new object?[] { name, defType };
+            } catch {
+                constructorParams = new object?[] { name };
+            }
+            var variable = Activator.CreateInstance(genType, constructorParams);
+            if (variable != null) {
+                if (activity is System.Activities.Statements.Sequence) {
+                    (activity as System.Activities.Statements.Sequence)!.Variables.Add((System.Activities.Variable)variable);
+                }
+
+                if (activity is System.Activities.Statements.Flowchart) {
+                    (activity as System.Activities.Statements.Flowchart)!.Variables.Add((System.Activities.Variable)variable);
+                }
+            }
+        }
+
+        public virtual void RemoveVariable<TActivity>(TActivity activity, string name) where TActivity : class {
+            if (activity is System.Activities.Statements.Sequence) {
+                var variable = (activity as System.Activities.Statements.Sequence)!.Variables.FirstOrDefault(p => p.Name == name);
+                if (variable != null) {
+                    (activity as System.Activities.Statements.Sequence)!.Variables.Remove(variable);
+                }
+            }
+            if (activity is System.Activities.Statements.Flowchart) {
+                var variable = (activity as System.Activities.Statements.Flowchart)!.Variables.FirstOrDefault(p => p.Name == name);
+                if (variable != null) {
+                    (activity as System.Activities.Statements.Flowchart)!.Variables.Remove(variable);
+                }
+            }
+        }
+
+        public virtual void UpdateVariable<TActivity>(TActivity activity, string oldName, string name, Type type, string defaultValue) where TActivity : class {
+            RemoveVariable(activity, oldName);
+            AddVariable(activity, name, type, defaultValue);
+        }
+    }
 }

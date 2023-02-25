@@ -11,13 +11,8 @@
     {
       foreach (var item in GenericTypes)
       {
-        <!-- <TypeSelectComponent @key="item" TypeCollection="TypeCollection" Label="@($"Generic type <{item.Key}>")"
-      @bind-Value="item.Value">
-        </TypeSelectComponent> -->
-
         <VariableTypeConstructorComponent @key="item" @ref="item.ObjRef" TypeCollection="TypeCollection" VariableType="item.Value">
         </VariableTypeConstructorComponent>
-
       }
     }
   </Body>
