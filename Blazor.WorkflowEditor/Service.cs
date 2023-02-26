@@ -1,5 +1,6 @@
 ﻿using System.Activities;
 using System.Collections.ObjectModel;
+using System.Xml.Linq;
 using Blazor.Diagrams.Core;
 using Blazor.Diagrams.Core.Models;
 using Blazor.Diagrams.Core.Models.Base;
@@ -9,12 +10,22 @@ using Microsoft.AspNetCore.Components.Web;
 namespace Blazor.WorkflowEditor {
 
     public partial class Service : IDisposable {
+        private class ActivityPairType {
+            public Type Type;
+            public PairAttribute PairAttribute;
+            public ActivityPairType(Type type, PairAttribute pairAttribute) {
+                Type = type;
+                PairAttribute = pairAttribute;
+            }
+        }
+
         private ActivityBuilder activityBuilder = default!;
         private readonly Diagram designer = default!;
         private readonly Action updateState = default!;
         private readonly List<ActivityDesignerPair> items = new();
         private readonly List<ActivityDesignerPair> selectedItems = new();
         private readonly List<(ActivityDesignerPair, ActivityDesignerPair)> selectedLinks = new();
+        private readonly Dictionary<Type, ActivityPairType> typePairAttributes = new ();
 
         public IEnumerable<ActivityDesignerPair> Items => items;
         public IEnumerable<ActivityDesignerPair> SelectedItems => selectedItems;
@@ -26,6 +37,7 @@ namespace Blazor.WorkflowEditor {
         public Diagrams.Core.Geometry.Rectangle? DiagramContainer => this.designer.Container;
 
         public event Action? SelectedOnMove;
+
 
         public Service(Diagram designer, Action updateState) {
             this.designer = designer;
@@ -236,38 +248,83 @@ namespace Blazor.WorkflowEditor {
         }
 
         private ActivityDesignerPair addActivity(System.Activities.Activity activity) {
-
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            foreach (var assembly in assemblies) {
-                foreach (Type type in assembly.GetTypes()) {
-                    DefaultNode? node = null;
-                    if (type.GetCustomAttributes(typeof(PairAttribute), true).Length > 0) {
-                        var attr = type.GetCustomAttributes(typeof(PairAttribute), true).FirstOrDefault();
-                        if (attr == null) continue;
-                        var activityType = activity.GetType();
-                        if (activityType.IsGenericType) {
-                            if (activityType.GetGenericTypeDefinition() != ((PairAttribute)attr).Activity) continue;
-                            var genericTypes = activityType.GenericTypeArguments;
-                            node = (Activator.CreateInstance(type.MakeGenericType(genericTypes), this, activity) as Activity.DefaultNode)!;
-                            if (designer.GetComponentForModel(node) == null) {
-                                designer.RegisterModelComponent(type.MakeGenericType(genericTypes), ((PairAttribute)attr).Control.MakeGenericType(genericTypes));
-                            }
-                        } else {
-                            if (activityType != ((PairAttribute)attr).Activity) continue;
-                            node = (Activator.CreateInstance(type, this, activity) as Activity.DefaultNode)!;
-                            if (designer.GetComponentForModel(node) == null) {
-                                designer.RegisterModelComponent(type, ((PairAttribute)attr).Control);
+            if (!typePairAttributes.Any()) {
+                var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+                foreach (var assembly in assemblies) {
+                    foreach (Type type in assembly.GetTypes()) {
+                        if (type.GetCustomAttributes(typeof(PairAttribute), true).Any()) {
+                            PairAttribute? attr = type.GetCustomAttributes(typeof(PairAttribute), true).FirstOrDefault() as PairAttribute;
+                            if (attr == null) continue;
+                            if (!typePairAttributes.ContainsKey(attr.Activity)) {
+                                typePairAttributes.Add(attr.Activity, new ActivityPairType(type, attr));
                             }
                         }
-                        if (node == null) continue;
-                        designer.Nodes.Add(node);
-                        node.RestoreViewState();
-                        ActivityDesignerPair result = new() { Activity = activity!, Node = node };
-                        items.Add(result);
-                        return result;
                     }
                 }
+
             }
+            Activity.DefaultNode? node = null;
+            var activityType = activity.GetType();
+            if (typePairAttributes.TryGetValue(activityType.IsGenericType ? activityType.GetGenericTypeDefinition() : activityType, out var pairT)) {
+                if (activityType.IsGenericType) {
+                    var genericTypes = activityType.GenericTypeArguments;
+                    node = (Activator.CreateInstance(pairT.Type.MakeGenericType(genericTypes), this, activity) as Activity.DefaultNode)!;
+                    if (designer.GetComponentForModel(node) == null) {
+                        designer.RegisterModelComponent(pairT.Type.MakeGenericType(genericTypes), pairT.PairAttribute.Control.MakeGenericType(genericTypes));
+                    }
+                } else {
+                    node = (Activator.CreateInstance(pairT.Type, this, activity) as Activity.DefaultNode)!;
+                    if (designer.GetComponentForModel(node) == null) {
+                        designer.RegisterModelComponent(pairT.Type, pairT.PairAttribute.Control);
+                    }
+                }
+
+            } else {
+                node = new DefaultNode(this, activity);
+                if (designer.GetComponentForModel(node) == null) {
+                    designer.RegisterModelComponent(typeof(DefaultNode), typeof(DefaultControl));
+                }
+            }
+            designer.Nodes.Add(node);
+            node.RestoreViewState();
+            ActivityDesignerPair result = new() { Activity = activity!, Node = node };
+            items.Add(result);
+            return result;
+
+
+            /*
+          var assemblies = AppDomain.CurrentDomain.GetAssemblies();
+          foreach (var assembly in assemblies) {
+              foreach (Type type in assembly.GetTypes()) {
+                  DefaultNode? node = null;
+                  if (type.GetCustomAttributes(typeof(PairAttribute), true).Length > 0) {
+                      var attr = type.GetCustomAttributes(typeof(PairAttribute), true).FirstOrDefault();
+                      if (attr == null) continue;
+                      var activityType = activity.GetType();
+                      if (activityType.IsGenericType) {
+                          if (activityType.GetGenericTypeDefinition() != ((PairAttribute)attr).Activity) continue;
+                          var genericTypes = activityType.GenericTypeArguments;
+                          node = (Activator.CreateInstance(type.MakeGenericType(genericTypes), this, activity) as Activity.DefaultNode)!;
+                          if (designer.GetComponentForModel(node) == null) {
+                              designer.RegisterModelComponent(type.MakeGenericType(genericTypes), ((PairAttribute)attr).Control.MakeGenericType(genericTypes));
+                          }
+                      } else {
+                          if (activityType != ((PairAttribute)attr).Activity) continue;
+                          node = (Activator.CreateInstance(type, this, activity) as Activity.DefaultNode)!;
+                          if (designer.GetComponentForModel(node) == null) {
+                              designer.RegisterModelComponent(type, ((PairAttribute)attr).Control);
+                          }
+                      }
+                      if (node == null) continue;
+                      designer.Nodes.Add(node);
+                      node.RestoreViewState();
+                      ActivityDesignerPair result = new() { Activity = activity!, Node = node };
+                      items.Add(result);
+                      return result;
+                  }
+              }
+          }
+          */
             throw new NotSupportedException();
         }
 
