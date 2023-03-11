@@ -4,21 +4,23 @@
 @implements IDisposable
 
 <div class="we-variables-table">
-  <table class="table-sm caption-top w-100">
-    <caption class="clear-fix">
-      Variables
-      <div class="float-end">
-        <div>
-          <button type="button" class="btn">
-            <span class="oi oi-plus text-primary" aria-hidden="true" @onclick="()=>addVariable()"></span>
-          </button>
-          <button type="button" class="btn" @onclick="()=>_collapsed=!_collapsed">
-            <span class="oi @(_collapsed?"oi-arrow-top":"oi-arrow-bottom") text-primary" aria-hidden="true"></span>
-          </button>
+  @*<table class="table-sm caption-top w-100">*@
+
+    @*header*@
+    <div class="we-variables-table_header" @onclick="()=>_collapsed=!_collapsed">
+            <div>Variables</div>
+            <div>
+                <button type="button" class="btn">
+                    <span class="oi oi-plus text-primary" aria-hidden="true" @onclick="()=>addVariable()"></span>
+                </button>
+                
+                <button type="button" class="btn" @onclick="()=>_collapsed=!_collapsed">
+                    <span class="oi @(_collapsed?"oi-caret-top":"oi-caret-bottom") text-primary" aria-hidden="true"></span>
+                </button>
+            </div>
         </div>
-      </div>
-    </caption>
-    <tbody class="@(_collapsed?"collapse":"")">
+    
+        <tbody class="@(_collapsed?"collapse":"")">
       @foreach (var item in _groupedVariables)
       {
         <tr>
@@ -27,15 +29,22 @@
             <table @key="item" class="table-sm caption-top w-100">
               <caption class="clear-fix">
                 <div>
-                  <button type="button" class="btn"
-                  @onclick="()=>reversValueCollapsedGroup(item)">
-                    <span class="oi text-primary @(getCollapsedGroup(item)?"oi-arrow-top":"oi-arrow-bottom")"
-                    style="vertical-align: text-top; cursor: pointer;" aria-hidden="true">
-                    </span>
-                  </button>
-                  @(item.Activity?.DisplayName??"...")
+
+                    @*show group name*@
+                    <span> @(item.Activity?.DisplayName ?? "...")</span>
+
+                    @*show collapce/show icon*@
+                    <div class="float-end">
+                        <button type="button" class="btn" @onclick="()=>reversValueCollapsedGroup(item)">
+                            <span class="oi text-primary @(getCollapsedGroup(item)?"oi-caret-top":"oi-caret-bottom")"
+                                style="vertical-align: text-top; cursor: pointer;" aria-hidden="true">
+                            </span>
+                        </button>
+                    </div>
+
                 </div>
               </caption>
+
               @if (!getCollapsedGroup(item))
               {
                 <thead>
@@ -74,7 +83,7 @@
         </tr>
       }
     </tbody>
-  </table>
+
 </div>
 
 

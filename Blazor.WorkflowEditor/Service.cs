@@ -25,6 +25,8 @@ namespace Blazor.WorkflowEditor {
 
         public Diagrams.Core.Geometry.Rectangle? DiagramContainer => this.designer.Container;
 
+        public ToolBoxItem? DraggedToolboxItem { get; set; }
+
         public event Action? SelectedOnMove;
 
         public Service(Diagram designer, Action updateState) {
@@ -140,6 +142,8 @@ namespace Blazor.WorkflowEditor {
 
             return true;
         }
+
+
 
         internal LinkModel LinkFromTo(ActivityDesignerPair from, ActivityDesignerPair to) {
             var linkModel = new LinkModel(from.Node.OutcomingPort, to.Node.IncomingPort) {
