@@ -4,7 +4,7 @@
 @implements IDisposable
 
 <div class="we-variables-table">
-  @*<table class="table-sm caption-top w-100">*@
+  <table class="table-sm caption-top w-100">
 
     @*header*@
     <div class="we-variables-table_header" @onclick="()=>_collapsed=!_collapsed">
@@ -83,7 +83,8 @@
         </tr>
       }
     </tbody>
-
+    
+    </table>
 </div>
 
 
@@ -129,10 +130,10 @@
     }
 
     [Parameter, EditorRequired]
-    public Service? Service { get; set; }
+    public Service Service { get; set; } = default!;
 
     [Parameter]
-    public List<Type>? TypeCollection{get;set;}
+    public List<Type> TypeCollection { get; set; } = default!;
 
 
     private bool getCollapsedGroup(GroupedActivityVariable group){
@@ -166,13 +167,14 @@
         var defaultValue = variable.DefaultValue?.ToString() ?? "";
         var oldName = variable.Name;
         var modal = await   _modalService.ShowModal<VariableCreateModal>(new (){
-      {"Title","Edit variable"},
-      {"ApplyButtonText","Apply"},
-      {"TypeCollection",TypeCollection??new List<Type>()},
-      {"VariableName",variable.Name},
-      {"DefaultValue",defaultValue},
-      {"VariableType",variable.Type},
-    });
+          {"Title","Edit variable"},
+          {"ApplyButtonText","Apply"},
+          {"TypeCollection",TypeCollection??new List<Type>()},
+          {"VariableName",variable.Name},
+          {"DefaultValue",defaultValue},
+          {"VariableType",variable.Type},
+        });
+
         if(modal.ModalResult==ModalResult.Applied){
 
             Service.UpdateVariable(
@@ -181,44 +183,40 @@
                 modal?.VariableName ?? string.Empty,
                 modal?.BuildedType ?? typeof(object), 
                 modal?.DefaultValue?? string.Empty);
+
             Service.RefreshVariables();
         }
+
         StateHasChanged();
     }
 
     private  async void addVariable(){
         Blazor.WorkflowEditor.Variable variable = new(); 
-        var defaultValue =  "";
-        if(_modalService==null)return;
+        if(_modalService==null)
+            return;
+        
         var modal = await   _modalService.ShowModal<VariableCreateModal>(new (){
-      {"Title","Add variable"},
-      {"ApplyButtonText","Apply"},
-      {"TypeCollection",TypeCollection??new List<Type>()},
-      {"VariableName",variable.Name},
-      {"DefaultValue",variable.DefaultValue},
-      {"VariableType",variable.Type},
-    });
+            {"Title","Add variable"},
+            {"ApplyButtonText","Apply"},
+            {"TypeCollection",TypeCollection??new List<Type>()},
+            {"VariableName",variable.Name},
+            {"DefaultValue",variable.DefaultValue},
+            {"VariableType",variable.Type},
+        });
+
         if(modal.ModalResult==ModalResult.Applied){
 
             Service.AddVariable(
-                Service?.Path.Last().Activity!, 
+                Service.Path.Last().Activity!, 
                 modal?.VariableName ?? string.Empty,
                 modal?.BuildedType ?? typeof(object), 
                 modal?.DefaultValue?? string.Empty);
-            Service.RefreshVariables();
-/* 
 
-            if ((Service?.Path.Last().Activity as DynamicActivity) != null) {
-                (Service?.Path.Last().Activity as DynamicActivity).Properties.Add(new DynamicActivityProperty
-                {
-                    Name = variable.Name,
-                    Type = modal?.BuildedType ?? typeof(object),
-                    Value = variable.DefaultValue
-                });
-            }
-            */
-    }
-    StateHasChanged();
+            Service.RefreshVariables();
+
+        }
+        
+        StateHasChanged();
   }
 
   protected override void OnInitialized()

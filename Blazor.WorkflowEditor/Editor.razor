@@ -46,7 +46,7 @@
 </div>
 
 @code {
-    private ModalService? modalService { get; set; }
+    private ModalService? modalService { get; set; } = default!;
     private Blazor.WorkflowEditor.Service service { get; set; } = default!;
 
     public Diagram designer { get; set; } = default!;
@@ -131,7 +131,7 @@
 
 
     private async void OnDrop(DragEventArgs e) {
-        
+
         if (service.DraggedToolboxItem == null)
             return;
 
@@ -142,22 +142,30 @@
                 .Select(s => new GenericTypeSelectModal.GenericTypeDescription { Key = s.ToString() })
                 .ToList();
 
+            if (modalService == null)
+                throw new NotSupportedException();
+
             var modal = await modalService.ShowModal<GenericTypeSelectModal>(new(){
                 {"GenericTypes",genericTypes},
                 {"TypeCollection",TypeCollection??new List<Type>()}
             });
-            if (modal.ModalResult == ModalResult.Applied) {
-                (bool hasAdded, var result) =
-                service.AddActivity(service.DraggedToolboxItem.TypeOfActivity, modal.BuildedTypes.ToArray()!);
-                if (!hasAdded) return;
+
+            if (modal != null && modal.ModalResult == ModalResult.Applied) {
+                (bool hasAdded, var result) = service.AddActivity(service.DraggedToolboxItem.TypeOfActivity, modal.BuildedTypes.ToArray()!);
+                if (!hasAdded) 
+                    return;
+
                 var position = designer.GetRelativeMousePoint(e.ClientX, e.ClientY);
                 result.Node.CenterPosition = position;
             }
+
             StateHasChanged();
         }
         else {
             (bool hasAdded, var result) = service.AddActivity(service.DraggedToolboxItem.TypeOfActivity);
-            if (!hasAdded) return;
+            if (!hasAdded) 
+                return;
+            
             var position = designer.GetRelativeMousePoint(e.ClientX, e.ClientY);
             result.Node.CenterPosition = position;
         }

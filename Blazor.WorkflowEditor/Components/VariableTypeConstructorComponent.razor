@@ -1,6 +1,7 @@
 @using System.ComponentModel
 @using System.Runtime.CompilerServices
 @implements IDisposable
+
 <div class="row">
   @if (Value.Value != null)
   {
@@ -11,14 +12,18 @@
           <span class="oi oi-x text-primary" aria-hidden="true"></span>
         </button>
     </div>
+
     @if (Value.Childs.Count > 0)
     {
         <ul class="we-vtc-options">
         @foreach (var child in Value.Childs)
         {
           <li class="option">
-            <VariableTypeConstructorComponent @key="child" @ref="child.ObjRef" TypeCollection="TypeCollection"
-          Value="child">
+            <VariableTypeConstructorComponent 
+                @key="child" 
+                @ref="child.ObjRef" 
+                TypeCollection="TypeCollection"
+                Value="child">
             </VariableTypeConstructorComponent>
           </li>
         }

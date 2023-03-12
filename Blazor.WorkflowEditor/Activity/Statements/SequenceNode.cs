@@ -19,13 +19,11 @@ public class SequenceNode : DefaultNode {
     }
 
     void linkFromTo(ActivityDesignerPair from, ActivityDesignerPair to) {
-        var link = service.LinkFromTo(from, to);
-        //link.Router = Diagrams.Core.Routers.Orthogonal;
-        //link.PathGenerator = Diagrams.Core.PathGenerators.Straight;
+        _ = service.LinkFromTo(from, to);
     }
 
     public override void LoadChilds(Func<System.Activities.Activity, ActivityDesignerPair> addActivity) {
-        bool childHasViewState = false;
+        var childHasViewState = false;
         ActivityDesignerPair? last = default;
         foreach (var activity in this.sequenceActivity.Activities) {
             var result = addActivity(activity);
@@ -45,8 +43,8 @@ public class SequenceNode : DefaultNode {
         if (childHasViewState == false) {
             var horizontal = this.service.DiagramContainer!.Width / 2;
             var minHeight = (int)this.service.Items.Min(p => p.Node.Size!.Height);
-            int y = minHeight;
-            int distance = minHeight;
+            var y = minHeight;
+            var distance = minHeight;
             foreach (var activity in this.sequenceActivity.Activities) {
                 var node = this.service.GetPair(activity).Node;
                 var size = node.Size!;
@@ -102,7 +100,7 @@ public class SequenceNode : DefaultNode {
     }
 
     private void onMove() {
-        if (sequenceActivity.Activities.Count() < 2)
+        if (sequenceActivity.Activities.Count < 2)
             return;
 
         foreach (var pair in service.SelectedItems) {
@@ -124,7 +122,7 @@ public class SequenceNode : DefaultNode {
         }
     }
 
-    private void reconnect(ActivityDesignerPair source, ActivityDesignerPair dest) {
+    private static void reconnect(ActivityDesignerPair source, ActivityDesignerPair dest) {
         var avalableSourcePorts = source.Node.Ports.ToList();
         if (source.Node.IncomingPort?.Links.Count > 0)
             avalableSourcePorts.Remove(source.Node.IncomingPort);
@@ -138,7 +136,7 @@ public class SequenceNode : DefaultNode {
                  from sp in avalableDestPorts
                  select (fp, sp, Math.Abs(fp.Position.DistanceTo(sp.Position)))).ToList();
 
-        (PortModel sourcePort, PortModel destPort, double _) = items.OrderBy(p => p.Distance).First();
+        (var sourcePort, var destPort, var _) = items.OrderBy(p => p.Distance).First();
         source.Node.SetOutcoming(sourcePort);
         dest.Node.SetIncoming(destPort);
     }

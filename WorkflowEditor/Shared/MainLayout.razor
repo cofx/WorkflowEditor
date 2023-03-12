@@ -80,10 +80,15 @@
         testGroup.Add(typeof(System.Activities.Statements.AddToCollection<>), "oi oi-pencil");
         groups.Add(testGroup);
 
-        TypeCollection.Add(Type.GetType("System.Object"));
-        TypeCollection.Add(Type.GetType("System.Int32"));
-        TypeCollection.Add(Type.GetType("System.String"));
-        TypeCollection.Add(Type.GetType("System.Boolean"));
+
+        Type getTypeByName(string name) {
+            return Type.GetType(name) ?? throw new NotSupportedException();
+        }
+
+        TypeCollection.Add(getTypeByName("System.Object"));
+        TypeCollection.Add(getTypeByName("System.Int32"));
+        TypeCollection.Add(getTypeByName("System.String"));
+        TypeCollection.Add(getTypeByName("System.Boolean"));
 
         Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
         var names = new string[]{

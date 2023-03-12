@@ -7,35 +7,52 @@
   </Header>
 
   <Body>
-    @if (GenericTypes != null)
-    {
-      foreach (var item in GenericTypes)
+
+      @foreach (var item in GenericTypes)
       {
         <VariableTypeConstructorComponent @key="item" @ref="item.ObjRef" TypeCollection="TypeCollection" VariableType="item.Value">
         </VariableTypeConstructorComponent>
       }
-    }
+
   </Body>
 
   <Footer>
     <ModalFooter OnClose="Modal!.Close" OnApply="Modal!.Apply"></ModalFooter>
   </Footer>
 </Modal>
+
+
 @code {
-  public class GenericTypeDescription
-  {
-    public string Key { get; set; } = string.Empty;
-    public Type? Value { get; set; } = null;
-    public object? ObjRef { get; set; } = null;
-  }
+    public class GenericTypeDescription
+    {
+        public string Key { get; set; } = string.Empty;
+        public Type? Value { get; set; } = null;
+        public object? ObjRef { get; set; } = null;
+    }
 
-  [Parameter]
-  public List<Type>? TypeCollection { get; set; }
+    public Modal? Modal { get; set; } = new()!;
 
-  [Parameter]
-  public List<GenericTypeDescription>? GenericTypes { get; set; }
+    [Parameter]
+    public List<Type?> TypeCollection { get; set; } = new();
 
-  public List<Type>? BuildedTypes { get=>GenericTypes?.Select(s=>((VariableTypeConstructorComponent)s.ObjRef).BuildedType).ToList(); }
+    [Parameter]
+    public List<GenericTypeDescription> GenericTypes { get; set; } = new();
 
-  public ModalResult ModalResult { get => Modal!.ModalResult; }
+    public List<Type?> BuildedTypes => GenericTypes.Select(p => p.ObjRef)
+      .OfType<VariableTypeConstructorComponent>()
+      .Where(p => p != null)
+      .Select(p => p.BuildedType).ToList();
+
+    public ModalResult ModalResult => Modal!.ModalResult; 
+
+    public Task<ModalResult> Show() {
+        return Modal!.Show();
+    }
+
+    public void Dispose() {
+        Modal!.Hide();
+
+        GC.SuppressFinalize(this);
+    }
+
 }

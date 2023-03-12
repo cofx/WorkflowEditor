@@ -10,7 +10,7 @@ public enum ModalResult {
 }
 
 public partial class Modal : ComponentBase, IModal, IDisposable {
-    private TaskCompletionSource<ModalResult> _taskCompletionSource = new();
+    private readonly TaskCompletionSource<ModalResult> _taskCompletionSource = new();
     private bool _isShowed = false;
     public bool IsShowed {
         get {
@@ -73,6 +73,7 @@ public partial class Modal : ComponentBase, IModal, IDisposable {
 
     public void Dispose() {
         UpdateState(ModalResult.Canceled);
+        GC.SuppressFinalize(this);
     }
     private void UpdateState(ModalResult result) {
         ModalResult = result;

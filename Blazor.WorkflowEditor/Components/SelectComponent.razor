@@ -1,7 +1,6 @@
 @using System.Linq.Expressions
 @typeparam T
 
-@implements IDisposable
 <div class="mb-3 row" @onmousedown:stopPropagation @onmouseup:stopPropagation @onmousemove:stopPropagation>
   <label class="col-form-label">@Label</label>
     <div class="we-autocomplete">
@@ -29,8 +28,7 @@
             </div>
           </div>
         </li>
-        @foreach (var item in SelectCollection.Where(p =>
-       FilteringCollection(p, _filter) == true).ToList())
+        @foreach (var item in SelectCollection.Where(p => FilteringCollection(p, _filter) == true).ToList())
         {
           <li class="option" @onclick="@(()=>onValueSelected(item))">
             <span class="option-text">@ConvertValueToListItemString(item)</span>
@@ -40,6 +38,7 @@
     }
   </div>
 </div>
+
 @code {
   private bool _collapsed { get; set; } = true;
   private T? _value = default(T);
@@ -85,13 +84,12 @@
   private void onValueSelected(T? value)
   {
     SelectedValue = value;
-    if(value!=null){
-    _filter = ConvertValueToString(value);
-    }
+
+    if(value != null)
+        _filter = ConvertValueToString(value);
+    
     _collapsed = true;
   }
 
-  public void Dispose()
-  {
-  }
+
 }

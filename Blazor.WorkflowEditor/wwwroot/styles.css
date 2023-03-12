@@ -17,6 +17,8 @@
 
 .we-diagram {
     flex: auto;
+    background-color: darkgray;
+    margin: 2px;
 }
 
 .we-custom-node {
@@ -130,6 +132,9 @@
 .we-toolbox {
     width: 400px;
     background-color: bisque;
+    margin: 2px;
+    border: 2px gray solid;
+    padding: 2px;
 }
 .we-toolbox-collapsed {
     width: 36px;
@@ -149,7 +154,6 @@
     }
 
     .we-toolbox .groupItem {
-        margin-bottom: 8px;
     }
 
         .we-toolbox .groupItem .groupName {
@@ -173,6 +177,9 @@
     max-height: 30vh;
     overflow: auto;
     background-color: aliceblue;
+    margin: 2px;
+    border: 2px gray solid;
+    padding: 2px;
 }
 
     .we-variables-table .we-variables-table_header {
