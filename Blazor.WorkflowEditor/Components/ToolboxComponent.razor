@@ -1,0 +1,118 @@
+﻿@using Blazor.WorkflowEditor;
+@using Blazor.WorkflowEditor.Activity;
+
+@if (toolboxCollapsed) {
+    <div class="we-toolbox-collaosed">
+        <div class="we-toolbox-table_header" @onclick="()=> toolboxCollapsed = !toolboxCollapsed">
+            <button type="button" class="btn">
+                <span class="oi oi-caret-@(toolboxCollapsed ? "right" : "left") text-primary" aria-hidden="true"></span>
+            </button>
+        </div>
+    </div>
+}
+else {
+   
+    <div class="we-toolbox">
+
+        <div class="we-toolbox-table_header" @onclick="()=> toolboxCollapsed = !toolboxCollapsed">
+            <button type="button" class="btn">
+                <span class="oi oi-caret-@(toolboxCollapsed ? "right" : "left") text-primary" aria-hidden="true"></span>
+            </button>
+            <div> Toolbox components </div>
+        </div>
+
+        <div class="we-toolbox-search">
+            <input type="text" class="form-control" @bind="toolboxFilter">
+            <button type="button" class="btn" @onclick="()=>toolboxFilter=string.Empty">
+                <span class="oi oi-x text-primary" style="align-self: center;"></span>
+            </button>
+        </div>
+
+        <ul class="groups list-unstyled">
+            @foreach (var group in GetFilterdToolBoxGroups()) {
+                <li class="groupItem">
+
+                    <div class="groupName" @onclick="()=>group.Collapsed = !group.Collapsed">
+                        <span class="oi oi-caret-@(group.Collapsed?"bottom":"top")" aria-hidden="true"></span>
+                        @group.Name
+                    </div>
+
+                    <ul class="items list-unstyled @(group.Collapsed? "collapse":"")">
+                        @foreach (var item in group.Items) {
+                            @*ondragstart = "event.dataTransfer.setData('', event.target.id);"*@
+                            @*@ondragstart= "(p) => OnDragStart(p, item)"*@
+
+                            <li @key="item"
+                                draggable="true"
+                                @ondragstart= "() => OnDragStart(item)"
+                                @ondragenter="() => OnDragEnter(item)"
+                                class="@((item.Image==null?"activityItemWithoutIcon":"activityItem"))">
+                                @if (item.Image != null) {
+                                    <span class="@item.Image" aria-hidden="true"></span>
+                                }
+                                @item.Name
+                            </li>
+                        }
+                    </ul>
+                </li>
+            }
+        </ul>
+        
+    </div>
+
+}
+
+
+@code {
+    private bool toolboxCollapsed = false;
+    private string toolboxFilter { get; set; } = string.Empty;
+
+    [Parameter, EditorRequired]
+    public Service Service { get; set; } = default!;
+
+    [Parameter, EditorRequired]
+    public IEnumerable<ToolBoxGroup> ToolBoxGroups { get; set; } = default!;
+
+    protected override void OnInitialized() {
+        base.OnInitialized();
+
+        // set all groups to state collapse
+        foreach (var item in this.ToolBoxGroups)
+            item.Collapsed = true;
+    }
+
+    private IEnumerable<ToolBoxGroup> GetFilterdToolBoxGroups() {
+        if (string.IsNullOrWhiteSpace(toolboxFilter))
+            return ToolBoxGroups;
+
+        var result = new List<ToolBoxGroup>();
+        foreach (var group in ToolBoxGroups) {
+            var items = group.Items.Where(s => s.Name.ToLower().Contains(toolboxFilter.ToLower())).ToList();
+            if (items.Count > 0) {
+                result.Add(new ToolBoxGroup {
+                        Description = group.Description,
+                        Name = group.Name,
+                        Items = items,
+                        Collapsed = false
+                    });
+            }
+        }
+        return result;
+
+    }
+
+    private void OnDragStart(ToolBoxItem key) {
+        if (Service.CheckAddActivity(key.TypeOfActivity) == false)
+            return;
+
+        Service.DraggedToolboxItem = key;
+    }
+
+    private void OnDragEnter(ToolBoxItem key) {
+        if (Service.CheckAddActivity(key.TypeOfActivity) == false)
+            return;
+    }
+
+
+
+}

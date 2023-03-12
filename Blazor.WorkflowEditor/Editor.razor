@@ -6,61 +6,19 @@
 @implements IDisposable
 
 <div class="we-editor">
-    <ModalService @ref="_modalService"></ModalService>
-    <CascadingValue Value="_modalService">
-        <div class="toolbox" style="@toolboxStyle">
-            <div class="caption">
-                <div class="row">
-                    <div class="col-1">
-                        <button type="button" class="btn" @onclick="()=>ToolboxCollapse()">
-                            <span class="oi @ToolboxCollapsedIcon() text-primary" aria-hidden="true"></span>
-                        </button>
-                    </div>
-                    @if (!toolboxCollapsed)
-                    {
 
-                    <div class="col-11">
-                        <div class="input-group">
-                            <input type="text" class="form-control" @bind="toolboxFilter">
-                            <button type="button" class="btn" @onclick="()=>toolboxFilter=string.Empty">
-                                <span class="oi oi-x text-primary" style="align-self: center;"></span>
-                            </button>
-                        </div>
-                    </div>
-                }
-            </div>
-        </div>
-        @if (!toolboxCollapsed)
-        {
-            <ul class="groups list-unstyled">
-                @foreach (var group in FilterdToolBoxGroups)
-                {
-                    <li class="groupItem">
-                        <div class="groupName" @onclick="()=>CollapseGroup(group.Name)">
-                            <span class="oi @GroupCollapsedIcon(group.Name)" aria-hidden="true"></span>
-                            @group.Name
-                        </div>
-                        <ul class="items list-unstyled @(HasGroupCollapsed(group.Name))">
-                            @foreach (var item in group.Items)
-                            {
-                                <li @key="item" class="@((item.Image==null?"activityItemWithoutIcon":"activityItem"))"
-                        draggable="true" @ondragstart="() => OnDragStart(item)"  @ondragenter="() => OnDragEnter(item)">
-                                    @if (item.Image != null)
-                                    {
-                                        <span class="@item.Image" aria-hidden="true"></span>
-                                    }
-                                    @item.Name
-                                </li>
-                            }
-                        </ul>
-                    </li>
-                }
-            </ul>
-        }
-    </div>
+    <ModalService @ref="modalService">
 
-        <div class="diagram-editor">
-            <div class="diagram-path">
+    </ModalService>
+    
+    <CascadingValue Value="modalService">
+        
+        @*ToolBox*@
+        <ToolboxComponent Service="service" ToolBoxGroups="ToolBoxGroups"></ToolboxComponent>
+
+        @*Diagramm*@
+        <div class="we-designer">
+            <div class="we-activity-path">
                 <nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         @foreach (var pathItem in service.Path)
@@ -72,29 +30,26 @@
                 </nav>
             </div>
 
-        <div class="diagram-main">
-            <div class="@diagramStyle" ondragover="event.preventDefault();" @ondragover:preventDefault @ondrop="OnDrop">
-                <CascadingValue Value="designer">
-                    <CascadingValue Value="service">
-                        <DiagramCanvas></DiagramCanvas>
+            <div class="we-diagram">
+                <div style="height: 100%" ondragover="event.preventDefault();" @ondragover:preventDefault @ondrop="OnDrop">
+                    <CascadingValue Value="designer">
+                        <CascadingValue Value="service">
+                            <DiagramCanvas />
+                        </CascadingValue>
                     </CascadingValue>
-                </CascadingValue>
+                </div>
             </div>
-        </div>
 
-            <div class="variables">
-                <VariablesPanelComponent Service="service" TypeCollection="TypeCollection"></VariablesPanelComponent>
-            </div>
+            <VariablesPanelComponent Service="service" TypeCollection="TypeCollection"></VariablesPanelComponent>
         </div>
     </CascadingValue>
 </div>
 
 @code {
-    private ModalService? _modalService { get; set; }
+    private ModalService? modalService { get; set; } = default!;
+    private Blazor.WorkflowEditor.Service service { get; set; } = default!;
 
     public Diagram designer { get; set; } = default!;
-    private ToolBoxItem? draggedToolboxItem;
-    private Blazor.WorkflowEditor.Service service { get; set; } = default!;
 
     [Parameter, EditorRequired]
     public IEnumerable<ToolBoxGroup> ToolBoxGroups { get; set; } = default!;
@@ -102,39 +57,6 @@
     [Parameter, EditorRequired]
     public List<Type> TypeCollection { get; set; } = default!;
 
-    private IDictionary<string, bool> collapsedGroups = new Dictionary<string, bool>();
-    private bool toolboxCollapsed = false;
-    private int toolboxWidth = 36;
-    private string toolboxStyle = "";
-
-    private string diagramStyle = "diagram";
-
-    private IEnumerable<ToolBoxGroup> FilterdToolBoxGroups
-    {
-        get
-        {
-            if (!string.IsNullOrWhiteSpace(toolboxFilter))
-            {
-                var result = new List<ToolBoxGroup>();
-                foreach (var group in ToolBoxGroups)
-                {
-                    var items = group.Items.Where(s => s.Name.ToLower().Contains(toolboxFilter.ToLower())).ToList();
-                    if (items.Count > 0)
-                    {
-                        result.Add(new ToolBoxGroup
-                        {
-                            Description = group.Description,
-                            Name = group.Name,
-                            Items = items
-                        });
-                    }
-                }
-                return result;
-            }
-            return ToolBoxGroups;
-        }
-    }
-    private string toolboxFilter { get; set; } = string.Empty;
 
     protected override void OnInitialized()
     {
@@ -157,11 +79,6 @@
         this.designer = new(options);
 
         this.service = new Service(this.designer, this.StateHasChanged);
-        
-        foreach (var item in this.ToolBoxGroups.Where(p => p.Items.Count != 0))
-        {
-            collapsedGroups.Add(item.Name, false);
-        }
     }
 
     public void Dispose()
@@ -169,54 +86,6 @@
         service?.Dispose();
     }
 
-    private void OnDragStart(ToolBoxItem key)
-    {
-        if (service.CheckAddActivity(key.TypeOfActivity) == false)
-            return;
-
-        draggedToolboxItem = key;
-    }
-
-    private void OnDragEnter(ToolBoxItem key)
-    {
-        if (service.CheckAddActivity(key.TypeOfActivity) == false)
-            return;
-    }
-
-    private async void OnDrop(DragEventArgs e)
-    {
-        if (draggedToolboxItem == null)
-            return;
-
-        if (draggedToolboxItem.TypeOfActivity.IsGenericType)
-        {
-            var genericTypes = draggedToolboxItem.TypeOfActivity
-                .GetGenericArguments()
-                .Where(t => t.IsGenericParameter)
-                .Select(s => new GenericTypeSelectModal.GenericTypeDescription { Key = s.ToString() })
-                .ToList();
-            var modal = await   _modalService.ShowModal<GenericTypeSelectModal>(new (){
-                {"GenericTypes",genericTypes},
-                {"TypeCollection",TypeCollection??new List<Type>()}
-            });
-            if(modal.ModalResult==ModalResult.Applied){
-                (bool hasAdded, var result) =
-                service.AddActivity(draggedToolboxItem.TypeOfActivity, modal.BuildedTypes.ToArray()!);
-                if (!hasAdded) return;
-                var position = designer.GetRelativeMousePoint(e.ClientX, e.ClientY);
-                result.Node.CenterPosition = position;
-            }
-            StateHasChanged();
-        }
-        else
-        {
-            (bool hasAdded, var result) = service.AddActivity(draggedToolboxItem.TypeOfActivity);
-            if (!hasAdded) return;
-            var position = designer.GetRelativeMousePoint(e.ClientX, e.ClientY);
-            result.Node.CenterPosition = position;
-        }
-        draggedToolboxItem = null;
-    }
 
     public void Edit(System.Activities.Activity source)
     {
@@ -240,7 +109,7 @@
             _ => throw new NotSupportedException()
         };
 
- 
+
         //TODO add validation info
         //var validationResults = System.Activities.Validation.ActivityValidationServices.Validate(ab.Implementation);
 
@@ -249,9 +118,6 @@
 
     public string Save()
     {
-        //var activity = service.GetActivityBuilder();
-        //System.Xaml.XamlServices.Save(activity);
-
         var sb = new StringBuilder();
         var xw = System.Activities.XamlIntegration.ActivityXamlServices.CreateBuilderWriter(new XamlXmlWriter(new StringWriter(sb), new XamlSchemaContext()));
         XamlServices.Save(xw, service.GetActivityBuilder());
@@ -263,42 +129,49 @@
         service.OpenPath(pathItem);
     }
 
-    private void CollapseGroup(string name)
-    {
-        if (collapsedGroups.ContainsKey(name))
-        {
-            collapsedGroups[name] = !collapsedGroups[name];
+
+    private async void OnDrop(DragEventArgs e) {
+
+        if (service.DraggedToolboxItem == null)
+            return;
+
+        if (service.DraggedToolboxItem.TypeOfActivity.IsGenericType) {
+            var genericTypes = service.DraggedToolboxItem.TypeOfActivity
+                .GetGenericArguments()
+                .Where(t => t.IsGenericParameter)
+                .Select(s => new GenericTypeSelectModal.GenericTypeDescription { Key = s.ToString() })
+                .ToList();
+
+            if (modalService == null)
+                throw new NotSupportedException();
+
+            var modal = await modalService.ShowModal<GenericTypeSelectModal>(new(){
+                {"GenericTypes",genericTypes},
+                {"TypeCollection",TypeCollection??new List<Type>()}
+            });
+
+            if (modal != null && modal.ModalResult == ModalResult.Applied) {
+                (bool hasAdded, var result) = service.AddActivity(service.DraggedToolboxItem.TypeOfActivity, modal.BuildedTypes.ToArray()!);
+                if (!hasAdded) 
+                    return;
+
+                var position = designer.GetRelativeMousePoint(e.ClientX, e.ClientY);
+                result.Node.CenterPosition = position;
+            }
+
+            StateHasChanged();
         }
-    }
-
-    private string HasGroupCollapsed(string name)
-    {
-        if (collapsedGroups.ContainsKey(name))
-        {
-            return collapsedGroups[name] ? "collapse" : "";
+        else {
+            (bool hasAdded, var result) = service.AddActivity(service.DraggedToolboxItem.TypeOfActivity);
+            if (!hasAdded) 
+                return;
+            
+            var position = designer.GetRelativeMousePoint(e.ClientX, e.ClientY);
+            result.Node.CenterPosition = position;
         }
-        return string.Empty;
+
+        service.DraggedToolboxItem = null;
+        
     }
 
-    private string GroupCollapsedIcon(string name)
-    {
-        if (collapsedGroups.ContainsKey(name))
-        {
-            return collapsedGroups[name] ? "oi oi-plus" : "oi oi-minus";
-        }
-        return "";
-    }
-
-    private void ToolboxCollapse()
-    {
-        toolboxCollapsed = !toolboxCollapsed;
-        toolboxWidth = toolboxCollapsed ? 36 : 400;
-        toolboxStyle = $"width: {toolboxWidth}px;";
-
-    }
-
-    private string ToolboxCollapsedIcon()
-    {
-        return toolboxCollapsed ? "oi oi-arrow-right" : "oi oi-arrow-left";
-    }
 }

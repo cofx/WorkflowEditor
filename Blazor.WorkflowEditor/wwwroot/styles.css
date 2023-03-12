@@ -1,5 +1,24 @@
-﻿.we-diagram {
-    background-color: burlywood
+﻿.we-editor {
+    display: flex;
+    height: 100%;
+}
+
+.we-designer {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.we-activity-path {
+    flex: none;
+    height: 24px;
+}
+
+.we-diagram {
+    flex: auto;
+    background-color: darkgray;
+    margin: 2px;
 }
 
 .we-custom-node {
@@ -108,66 +127,68 @@
             color: var(--bs-body);
         }
 
-.we-editor {
-    display: flex;
-    height: 100%;
-    background-color: antiquewhite;
+
+/*Toolbox*/
+.we-toolbox {
+    width: 400px;
+    background-color: bisque;
+    margin: 2px;
+    border: 2px gray solid;
+    padding: 2px;
 }
-
-    .we-editor .toolbox {
-        flex: none;
-        width: 400px;
+.we-toolbox-collapsed {
+    width: 36px;
+    background-color: bisque;
+}
+    .we-toolbox .we-toolbox-table_header {
+        cursor:pointer;
+        background-color: deepskyblue;
+        padding: 0px;
+        display: flex;
+        align-items: center;
     }
 
-    .we-editor .groupItem {
-        padding: 2px;
+    .we-toolbox .we-toolbox-search {
+        display: flex;
+        margin: 4px;
     }
 
-        .we-editor .groupItem .groupName {
-            font-weight: bold;
-            cursor: default;
+    .we-toolbox .groupItem {
+    }
+
+        .we-toolbox .groupItem .groupName {
+            cursor: pointer;
+            background-color: lightgray;
         }
 
-        .we-editor .groupItem .activityItem {
+        .we-toolbox .groupItem .activityItem {
             cursor: move;
             padding-left: 12px;
         }
 
-        .we-editor .groupItem .activityItemWithoutIcon {
+        .we-toolbox .groupItem .activityItemWithoutIcon {
             cursor: move;
             padding-left: 30px;
         }
 
-    .we-editor .diagram-editor {
-        flex: 2;
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-    }
 
-        .we-editor .diagram-editor .diagram-path {
-            flex: none;
-            height: 24px;
-        }
-
-        .we-editor .diagram-editor .diagram-main {
-            flex: auto;
-        }
-
-            .we-editor .diagram-editor .diagram-main .diagram {
-                height: 100%;
-            }
-
-        .we-editor .diagram-editor .variables {
-            flex: none;
-        }
-
-
-
+/*Variables*/
 .we-variables-table {
-    max-height: 500px;
+    max-height: 30vh;
     overflow: auto;
+    background-color: aliceblue;
+    margin: 2px;
+    border: 2px gray solid;
+    padding: 2px;
 }
+
+    .we-variables-table .we-variables-table_header {
+        background-color: deepskyblue;
+        padding: 0px;
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+    }
 
 .we-options {
     width: 100%;

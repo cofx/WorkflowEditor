@@ -5,20 +5,22 @@
 
 <div class="we-variables-table">
   <table class="table-sm caption-top w-100">
-    <caption class="clear-fix">
-      Variables
-      <div class="float-end">
-        <div>
-          <button type="button" class="btn">
-            <span class="oi oi-plus text-primary" aria-hidden="true" @onclick="()=>addVariable()"></span>
-          </button>
-          <button type="button" class="btn" @onclick="()=>_collapsed=!_collapsed">
-            <span class="oi @(_collapsed?"oi-arrow-top":"oi-arrow-bottom") text-primary" aria-hidden="true"></span>
-          </button>
+
+    @*header*@
+    <div class="we-variables-table_header" @onclick="()=>_collapsed=!_collapsed">
+            <div>Variables</div>
+            <div>
+                <button type="button" class="btn">
+                    <span class="oi oi-plus text-primary" aria-hidden="true" @onclick="()=>addVariable()"></span>
+                </button>
+                
+                <button type="button" class="btn" @onclick="()=>_collapsed=!_collapsed">
+                    <span class="oi @(_collapsed?"oi-caret-top":"oi-caret-bottom") text-primary" aria-hidden="true"></span>
+                </button>
+            </div>
         </div>
-      </div>
-    </caption>
-    <tbody class="@(_collapsed?"collapse":"")">
+    
+        <tbody class="@(_collapsed?"collapse":"")">
       @foreach (var item in _groupedVariables)
       {
         <tr>
@@ -27,15 +29,22 @@
             <table @key="item" class="table-sm caption-top w-100">
               <caption class="clear-fix">
                 <div>
-                  <button type="button" class="btn"
-                  @onclick="()=>reversValueCollapsedGroup(item)">
-                    <span class="oi text-primary @(getCollapsedGroup(item)?"oi-arrow-top":"oi-arrow-bottom")"
-                    style="vertical-align: text-top; cursor: pointer;" aria-hidden="true">
-                    </span>
-                  </button>
-                  @(item.Activity?.DisplayName??"...")
+
+                    @*show group name*@
+                    <span> @(item.Activity?.DisplayName ?? "...")</span>
+
+                    @*show collapce/show icon*@
+                    <div class="float-end">
+                        <button type="button" class="btn" @onclick="()=>reversValueCollapsedGroup(item)">
+                            <span class="oi text-primary @(getCollapsedGroup(item)?"oi-caret-top":"oi-caret-bottom")"
+                                style="vertical-align: text-top; cursor: pointer;" aria-hidden="true">
+                            </span>
+                        </button>
+                    </div>
+
                 </div>
               </caption>
+
               @if (!getCollapsedGroup(item))
               {
                 <thead>
@@ -74,7 +83,8 @@
         </tr>
       }
     </tbody>
-  </table>
+    
+    </table>
 </div>
 
 
@@ -120,10 +130,10 @@
     }
 
     [Parameter, EditorRequired]
-    public Service? Service { get; set; }
+    public Service Service { get; set; } = default!;
 
     [Parameter]
-    public List<Type>? TypeCollection{get;set;}
+    public List<Type> TypeCollection { get; set; } = default!;
 
 
     private bool getCollapsedGroup(GroupedActivityVariable group){
@@ -157,13 +167,14 @@
         var defaultValue = variable.DefaultValue?.ToString() ?? "";
         var oldName = variable.Name;
         var modal = await   _modalService.ShowModal<VariableCreateModal>(new (){
-      {"Title","Edit variable"},
-      {"ApplyButtonText","Apply"},
-      {"TypeCollection",TypeCollection??new List<Type>()},
-      {"VariableName",variable.Name},
-      {"DefaultValue",defaultValue},
-      {"VariableType",variable.Type},
-    });
+          {"Title","Edit variable"},
+          {"ApplyButtonText","Apply"},
+          {"TypeCollection",TypeCollection??new List<Type>()},
+          {"VariableName",variable.Name},
+          {"DefaultValue",defaultValue},
+          {"VariableType",variable.Type},
+        });
+
         if(modal.ModalResult==ModalResult.Applied){
 
             Service.UpdateVariable(
@@ -172,44 +183,40 @@
                 modal?.VariableName ?? string.Empty,
                 modal?.BuildedType ?? typeof(object), 
                 modal?.DefaultValue?? string.Empty);
+
             Service.RefreshVariables();
         }
+
         StateHasChanged();
     }
 
     private  async void addVariable(){
         Blazor.WorkflowEditor.Variable variable = new(); 
-        var defaultValue =  "";
-        if(_modalService==null)return;
+        if(_modalService==null)
+            return;
+        
         var modal = await   _modalService.ShowModal<VariableCreateModal>(new (){
-      {"Title","Add variable"},
-      {"ApplyButtonText","Apply"},
-      {"TypeCollection",TypeCollection??new List<Type>()},
-      {"VariableName",variable.Name},
-      {"DefaultValue",variable.DefaultValue},
-      {"VariableType",variable.Type},
-    });
+            {"Title","Add variable"},
+            {"ApplyButtonText","Apply"},
+            {"TypeCollection",TypeCollection??new List<Type>()},
+            {"VariableName",variable.Name},
+            {"DefaultValue",variable.DefaultValue},
+            {"VariableType",variable.Type},
+        });
+
         if(modal.ModalResult==ModalResult.Applied){
 
             Service.AddVariable(
-                Service?.Path.Last().Activity!, 
+                Service.Path.Last().Activity!, 
                 modal?.VariableName ?? string.Empty,
                 modal?.BuildedType ?? typeof(object), 
                 modal?.DefaultValue?? string.Empty);
-            Service.RefreshVariables();
-/* 
 
-            if ((Service?.Path.Last().Activity as DynamicActivity) != null) {
-                (Service?.Path.Last().Activity as DynamicActivity).Properties.Add(new DynamicActivityProperty
-                {
-                    Name = variable.Name,
-                    Type = modal?.BuildedType ?? typeof(object),
-                    Value = variable.DefaultValue
-                });
-            }
-            */
-    }
-    StateHasChanged();
+            Service.RefreshVariables();
+
+        }
+        
+        StateHasChanged();
   }
 
   protected override void OnInitialized()

@@ -162,7 +162,6 @@ public class DefaultNode : NodeModel {
         State.Designer.SetCenterX(activity, (int?)this.CenterPosition.X);
         State.Designer.SetCenterY(activity, (int?)this.CenterPosition.Y);
 
-
         /*
         if (this.Size != null && sizeCompare(this.Size, this.defaultSize) == false) {
             this.viewState.Widht = (int)this.Size.Width;

@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 
 namespace Blazor.WorkflowEditor.Components.Modals;
 
@@ -13,14 +13,14 @@ public class ModalObject {
     public Dictionary<string, object> Parameters { get; internal set; }
     public object? ObjRef { get; set; }
 
+    readonly TaskCompletionSource task = new();
+
     public ModalObject(Type modalType, Dictionary<string, object> parameters) {
         ModalType = modalType;
         Parameters = parameters;
     }
 
-    TaskCompletionSource task = new TaskCompletionSource();
-
-    public void AfterFirstRender(object args) {
+    public void AfterFirstRender() {
         task.SetResult();
     }
 
@@ -31,7 +31,7 @@ public interface IModalService {
     Task<TModal> ShowModal<TModal>(Dictionary<string, object> parameters) where TModal : class;
 }
 
-public partial class ModalService : IModalService, IDisposable {
+public partial class ModalService : IModalService {
     public List<ModalObject> Modals { get; set; }
 
     public ModalService() {
@@ -39,17 +39,14 @@ public partial class ModalService : IModalService, IDisposable {
     }
 
     public async Task<TModal> ShowModal<TModal>(Dictionary<string, object> parameters) where TModal : class {
-        var modalObj = new ModalObject(typeof(TModal), parameters);
-        if (modalObj == null) {
-            throw new SystemException("Can`t create modal");
-        }
+        var modalObj = new ModalObject(typeof(TModal), parameters) ?? throw new SystemException("Can`t create modal");
         Modals.Add(modalObj);
         StateHasChanged();
+
         await modalObj.GetDialog();
         var modal = (modalObj.ObjRef as DynamicComponent)?.Instance as TModal;
         if (modal != null && (modal is IModal) == true) {
-            var imodal = modal as IModal;
-            if (imodal != null) {
+            if (modal is IModal imodal) {
                 await imodal.Show();
             }
         } else {
@@ -58,6 +55,4 @@ public partial class ModalService : IModalService, IDisposable {
         return modal;
     }
 
-    public void Dispose() {
-    }
 }

@@ -1,5 +1,6 @@
-namespace Blazor.WorkflowEditor.Activity;
+﻿namespace Blazor.WorkflowEditor.Activity;
 
+[AttributeUsage(AttributeTargets.Class)]
 public class PairAttribute : Attribute {
     public Type Activity { get; set; } = default!;
     public Type Control { get; set; } = default!;

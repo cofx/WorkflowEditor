@@ -1,6 +1,5 @@
 ﻿using System.Activities;
 using System.Collections.ObjectModel;
-using System.Xml.Linq;
 using Blazor.Diagrams.Core;
 using Blazor.Diagrams.Core.Models;
 using Blazor.Diagrams.Core.Models.Base;
@@ -25,7 +24,7 @@ namespace Blazor.WorkflowEditor {
         private readonly List<ActivityDesignerPair> items = new();
         private readonly List<ActivityDesignerPair> selectedItems = new();
         private readonly List<(ActivityDesignerPair, ActivityDesignerPair)> selectedLinks = new();
-        private readonly Dictionary<Type, ActivityPairType> typePairAttributes = new ();
+        private readonly Dictionary<Type, ActivityPairType> typePairAttributes = new();
 
         public IEnumerable<ActivityDesignerPair> Items => items;
         public IEnumerable<ActivityDesignerPair> SelectedItems => selectedItems;
@@ -36,8 +35,9 @@ namespace Blazor.WorkflowEditor {
 
         public Diagrams.Core.Geometry.Rectangle? DiagramContainer => this.designer.Container;
 
-        public event Action? SelectedOnMove;
+        public ToolBoxItem? DraggedToolboxItem { get; set; }
 
+        public event Action? SelectedOnMove;
 
         public Service(Diagram designer, Action updateState) {
             this.designer = designer;
@@ -59,6 +59,8 @@ namespace Blazor.WorkflowEditor {
 
             this.designer.PanChanged -= panChanged;
             this.designer.ZoomChanged -= zoomChanged;
+
+            GC.SuppressFinalize(this);
         }
 
         public void Delete(Activity.DefaultNode node) {
@@ -80,7 +82,7 @@ namespace Blazor.WorkflowEditor {
         /// </summary>
         public (bool hasAdded, ActivityDesignerPair result) AddActivity(Type activityType, params Type[] types) {
             object? activityObject;
-            if (types != null && types.Count() > 0) {
+            if (types != null && types.Length > 0) {
                 activityObject = Activator.CreateInstance(activityType.MakeGenericType(types));
             } else {
                 activityObject = Activator.CreateInstance(activityType);
@@ -251,20 +253,22 @@ namespace Blazor.WorkflowEditor {
             if (!typePairAttributes.Any()) {
                 var assemblies = AppDomain.CurrentDomain.GetAssemblies();
                 foreach (var assembly in assemblies) {
-                    foreach (Type type in assembly.GetTypes()) {
+                    foreach (var type in assembly.GetTypes()) {
                         if (type.GetCustomAttributes(typeof(PairAttribute), true).Any()) {
-                            PairAttribute? attr = type.GetCustomAttributes(typeof(PairAttribute), true).FirstOrDefault() as PairAttribute;
-                            if (attr == null) continue;
-                            if (!typePairAttributes.ContainsKey(attr.Activity)) {
+                            if (type.GetCustomAttributes(typeof(PairAttribute), true).FirstOrDefault() is not PairAttribute attr)
+                                continue;
+
+                            if (!typePairAttributes.ContainsKey(attr.Activity))
                                 typePairAttributes.Add(attr.Activity, new ActivityPairType(type, attr));
-                            }
+
                         }
                     }
                 }
 
             }
-            Activity.DefaultNode? node = null;
+
             var activityType = activity.GetType();
+            DefaultNode? node;
             if (typePairAttributes.TryGetValue(activityType.IsGenericType ? activityType.GetGenericTypeDefinition() : activityType, out var pairT)) {
                 if (activityType.IsGenericType) {
                     var genericTypes = activityType.GenericTypeArguments;
@@ -290,7 +294,6 @@ namespace Blazor.WorkflowEditor {
             ActivityDesignerPair result = new() { Activity = activity!, Node = node };
             items.Add(result);
             return result;
-
 
             /*
           var assemblies = AppDomain.CurrentDomain.GetAssemblies();
